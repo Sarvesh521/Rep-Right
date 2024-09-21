@@ -11,7 +11,7 @@ class ProcessFrame:
         self.flip_frame = flip_frame
 
         # self.thresholds
-        self.thresholds = thresholds["CURL"]
+        self.thresholds = thresholds["RAISES"]
 
         # Font type.
         self.font = cv2.FONT_HERSHEY_SIMPLEX
@@ -74,10 +74,10 @@ class ProcessFrame:
             'INACTIVE_TIME_FRONT': 0.0,
 
             # 0 --> Bend Backwards, 1 --> Bend Forward, 2 --> Keep shin straight, 3 --> Deep squat
-            'DISPLAY_TEXT' : np.full((2,), False),
-            'COUNT_FRAMES' : np.zeros((2,), dtype=np.int64),
+            'DISPLAY_TEXT' : np.full((4,), False),
+            'COUNT_FRAMES' : np.zeros((4,), dtype=np.int64),
 
-            'CURL_MORE': False,
+            'RAISE_HIGHER': False,
 
             'INCORRECT_POSTURE': False,
 
@@ -90,8 +90,9 @@ class ProcessFrame:
         }
         
         self.FEEDBACK_ID_MAP = {
-                                0: ('STRAIGHTEN BODY', 215, (0, 153, 255)),
-                                1: ('LOWER YOUR ELBOW', 215, (0, 153, 255))
+                                0: ('FLARE ELBOWS MORE', 215, (0, 153, 255)),
+                                1: ("DON'T HUNCH SHOULDERS", 215, (0, 153, 255)),
+                                2: ("ASYMMETRIC FORM", 215, (0, 153, 255))
                                }
 
         self.session = []
@@ -100,15 +101,15 @@ class ProcessFrame:
     def get_session_data(self):
         return self.session
 
-    def _get_state(self, elbow_angle):
+    def _get_state(self, avg_shoulder_angle):
         
         elbow = None        
 
-        if self.thresholds['ELBOW_WRIST_VERT']['NORMAL'][1] <= elbow_angle <= self.thresholds['ELBOW_WRIST_VERT']['NORMAL'][0]:
+        if self.thresholds['SHOULDER_ELBOW_VERT']['NORMAL'][1] <= avg_shoulder_angle <= self.thresholds['SHOULDER_ELBOW_VERT']['NORMAL'][0]:
             elbow = 1
-        elif self.thresholds['ELBOW_WRIST_VERT']['TRANS'][1] <= elbow_angle <= self.thresholds['ELBOW_WRIST_VERT']['TRANS'][0]:
+        elif self.thresholds['SHOULDER_ELBOW_VERT']['TRANS'][1] <= avg_shoulder_angle <= self.thresholds['SHOULDER_ELBOW_VERT']['TRANS'][0]:
             elbow = 2
-        elif self.thresholds['ELBOW_WRIST_VERT']['PASS'][1] <= elbow_angle <= self.thresholds['ELBOW_WRIST_VERT']['PASS'][0]:
+        elif self.thresholds['SHOULDER_ELBOW_VERT']['PASS'][1] <= avg_shoulder_angle <= self.thresholds['SHOULDER_ELBOW_VERT']['PASS'][0]:
             elbow = 3
 
         return f's{elbow}' if elbow else None
@@ -131,13 +132,13 @@ class ProcessFrame:
             
 
 
-    def _show_feedback(self, frame, c_frame, dict_maps, curl_more_disp):
+    def _show_feedback(self, frame, c_frame, dict_maps, RAISE_HIGHER_disp):
 
 
-        if curl_more_disp:
+        if RAISE_HIGHER_disp:
             draw_text(
                     frame, 
-                    'CURL MORE', 
+                    'RAISE HIGHER!!!', 
                     pos=(30, 80),
                     text_color=(0, 0, 0),
                     font_scale=0.6,
@@ -179,8 +180,8 @@ class ProcessFrame:
                                 get_landmark_features(ps_lm.landmark, self.dict_features, 'right', frame_width, frame_height)
 
             offset_angle = find_angle(left_shoulder_coord, right_shoulder_coord, nose_coord)
-
-            if offset_angle > self.thresholds['OFFSET_THRESH']:
+            print(offset_angle)
+            if offset_angle < self.thresholds['OFFSET_THRESH']:
                 
                 display_inactivity = False
 
@@ -198,8 +199,8 @@ class ProcessFrame:
                 cv2.circle(frame, left_shoulder_coord, 7, self.COLORS['yellow'], -1)
                 cv2.circle(frame, right_shoulder_coord, 7, self.COLORS['magenta'], -1)
 
-                if self.flip_frame:
-                    frame = cv2.flip(frame, 1)
+                # if self.flip_frame:
+                #     frame = cv2.flip(frame, 1)
 
                 if display_inactivity:
                     # cv2.putText(frame, 'Resetting SQUAT_COUNT due to inactivity!!!', (10, frame_height - 90), 
@@ -273,49 +274,81 @@ class ProcessFrame:
                 ankle_coord = None
                 foot_coord = None
 
-                if dist_l_sh_elb > dist_r_sh_elb:
-                    shoulder_coord = left_shoulder_coord
-                    elbow_coord = left_elbow_coord
-                    wrist_coord = left_wrist_coord
-                    hip_coord = left_hip_coord
-                    knee_coord = left_knee_coord
-                    ankle_coord = left_ankle_coord
-                    foot_coord = left_foot_coord
+                 #if we take l then its *- 1
+                
 
-                    multiplier = -1
+
+
+                # if dist_l_sh_elb > dist_r_sh_elb:
+                #     shoulder_coord = left_shoulder_coord
+                #     elbow_coord = left_elbow_coord
+                #     wrist_coord = left_wrist_coord
+                #     hip_coord = left_hip_coord
+                #     knee_coord = left_knee_coord
+                #     ankle_coord = left_ankle_coord
+                #     foot_coord = left_foot_coord
+
+                #     multiplier = -1
                                      
                 
-                else:
-                    shoulder_coord = right_shoulder_coord
-                    elbow_coord = right_elbow_coord
-                    wrist_coord = right_wrist_coord
-                    hip_coord = right_hip_coord
-                    knee_coord = right_knee_coord
-                    ankle_coord = right_ankle_coord
-                    foot_coord = right_foot_coord
+                # else:
+                #     shoulder_coord = right_shoulder_coord
+                #     elbow_coord = right_elbow_coord
+                #     wrist_coord = right_wrist_coord
+                #     hip_coord = right_hip_coord
+                #     knee_coord = right_knee_coord
+                #     ankle_coord = right_ankle_coord
+                #     foot_coord = right_foot_coord
 
-                    multiplier = 1
+                #     multiplier = 1
                     
 
                 # ------------------- Verical Angle calculation --------------
                 # with open('offset_angle.txt', 'a') as f:
                 #     f.write("HELLO2")
-                shoulder_vertical_angle = find_angle(elbow_coord, np.array([shoulder_coord[0], 0]), shoulder_coord)
-                cv2.ellipse(frame, shoulder_coord, (30, 30), 
-                            angle = 0, startAngle = -90, endAngle = -90+multiplier*shoulder_vertical_angle, 
+                print("HELLO: ", left_shoulder_coord)
+                left_shoulder_vertical_angle = find_angle(left_elbow_coord, np.array([left_shoulder_coord[0], 0]), left_shoulder_coord)
+                cv2.ellipse(frame, left_shoulder_coord, (30, 30), 
+                            angle = 0, startAngle = 90, endAngle = -90+left_shoulder_vertical_angle,   #-90+multiplier*shoulder_vertical_angle 
                             color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
+                draw_dotted_line(frame, left_shoulder_coord, start=left_shoulder_coord[1]-80, end=left_shoulder_coord[1]+20, line_color=self.COLORS['blue'])
 
-                draw_dotted_line(frame, shoulder_coord, start=shoulder_coord[1]-80, end=shoulder_coord[1]+20, line_color=self.COLORS['blue'])
+                left_elbow_vertical_angle = find_angle(left_wrist_coord, np.array([left_elbow_coord[0], 0]), left_elbow_coord)
+                cv2.ellipse(frame, left_elbow_coord, (20, 20),
+                            angle = 0, startAngle = -90, endAngle = -90-left_elbow_vertical_angle, 
+                            color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
+                draw_dotted_line(frame, left_elbow_coord, start=left_elbow_coord[1]-50, end=left_elbow_coord[1]+20, line_color=self.COLORS['blue'])
 
 
+                right_shoulder_vertical_angle = find_angle(right_elbow_coord, np.array([right_shoulder_coord[0], 0]), right_shoulder_coord)
+                cv2.ellipse(frame, right_shoulder_coord, (30, 30),
+                            angle = 0, startAngle = 90, endAngle = 270-right_shoulder_vertical_angle, 
+                            color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
+                draw_dotted_line(frame, right_shoulder_coord, start=right_shoulder_coord[1]-80, end=right_shoulder_coord[1]+20, line_color=self.COLORS['blue'])
+
+                right_elbow_vertical_angle = find_angle(right_wrist_coord, np.array([right_elbow_coord[0], 0]), right_elbow_coord)
+                cv2.ellipse(frame, right_elbow_coord, (20, 20),
+                            angle = 0, startAngle = -90, endAngle = -90+right_elbow_vertical_angle, 
+                            color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
+                draw_dotted_line(frame, right_elbow_coord, start=right_elbow_coord[1]-50, end=right_elbow_coord[1]+20, line_color=self.COLORS['blue'])
 
 
-                elbow_vertical_angle = find_angle(wrist_coord, np.array([elbow_coord[0], 0]), elbow_coord)
-                cv2.ellipse(frame, elbow_coord, (20, 20), 
-                            angle = 0, startAngle = -90, endAngle = -90+multiplier*elbow_vertical_angle, 
-                            color = self.COLORS['white'], thickness = 3,  lineType = self.linetype)
+                # shoulder_vertical_angle = find_angle(elbow_coord, np.array([shoulder_coord[0], 0]), shoulder_coord)
+                # cv2.ellipse(frame, shoulder_coord, (30, 30), 
+                #             angle = 0, startAngle = -90, endAngle = -90+multiplier*shoulder_vertical_angle, 
+                #             color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
 
-                draw_dotted_line(frame, elbow_coord, start=elbow_coord[1]-50, end=elbow_coord[1]+20, line_color=self.COLORS['blue'])
+                # draw_dotted_line(frame, shoulder_coord, start=shoulder_coord[1]-80, end=shoulder_coord[1]+20, line_color=self.COLORS['blue'])
+
+
+                # elbow_vertical_angle = find_angle(wrist_coord, np.array([elbow_coord[0], 0]), elbow_coord)
+                # cv2.ellipse(frame, elbow_coord, (20, 20), 
+                #             angle = 0, startAngle = -90, endAngle = -90+multiplier*elbow_vertical_angle, 
+                #             color = self.COLORS['white'], thickness = 3,  lineType = self.linetype)
+
+                # draw_dotted_line(frame, elbow_coord, start=elbow_coord[1]-50, end=elbow_coord[1]+20, line_color=self.COLORS['blue'])
+
+
                 # with open('offset_angle.txt', 'a') as f:
                 #     f.write("HELLO3")
 
@@ -332,26 +365,44 @@ class ProcessFrame:
         
                 
                 # Join landmarks.
-                cv2.line(frame, shoulder_coord, elbow_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
-                cv2.line(frame, wrist_coord, elbow_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
-                # cv2.line(frame, shoulder_coord, hip_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
-                # cv2.line(frame, knee_coord, hip_coord, self.COLORS['light_blue'], 4,  lineType=self.linetype)
-                # cv2.line(frame, ankle_coord, knee_coord,self.COLORS['light_blue'], 4,  lineType=self.linetype)
-                # cv2.line(frame, ankle_coord, foot_coord, self.COLORS['light_blue'], 4,  lineType=self.linetype)
+                # cv2.line(frame, shoulder_coord, elbow_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
+                # cv2.line(frame, wrist_coord, elbow_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
+                # # cv2.line(frame, shoulder_coord, hip_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
+                # # cv2.line(frame, knee_coord, hip_coord, self.COLORS['light_blue'], 4,  lineType=self.linetype)
+                # # cv2.line(frame, ankle_coord, knee_coord,self.COLORS['light_blue'], 4,  lineType=self.linetype)
+                # # cv2.line(frame, ankle_coord, foot_coord, self.COLORS['light_blue'], 4,  lineType=self.linetype)
                 
+                # # Plot landmark points
+                # cv2.circle(frame, shoulder_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                # cv2.circle(frame, elbow_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                # cv2.circle(frame, wrist_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                # # cv2.circle(frame, hip_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                # # cv2.circle(frame, knee_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                # # cv2.circle(frame, ankle_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                # # cv2.circle(frame, foot_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                # # with open('offset_angle.txt', 'a') as f:
+                # #     f.write("HELLO4")
+
+                cv2.line(frame, left_shoulder_coord, left_elbow_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
+                cv2.line(frame, left_wrist_coord, left_elbow_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
+
+                cv2.line(frame, right_shoulder_coord, right_elbow_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
+                cv2.line(frame, right_wrist_coord, right_elbow_coord, self.COLORS['light_blue'], 4, lineType=self.linetype)
+
                 # Plot landmark points
-                cv2.circle(frame, shoulder_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
-                cv2.circle(frame, elbow_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
-                cv2.circle(frame, wrist_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
-                # cv2.circle(frame, hip_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
-                # cv2.circle(frame, knee_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
-                # cv2.circle(frame, ankle_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
-                # cv2.circle(frame, foot_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
-                # with open('offset_angle.txt', 'a') as f:
-                #     f.write("HELLO4")
+                cv2.circle(frame, left_shoulder_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                cv2.circle(frame, left_elbow_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                cv2.circle(frame, left_wrist_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+
+                cv2.circle(frame, right_shoulder_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                cv2.circle(frame, right_elbow_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+                cv2.circle(frame, right_wrist_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
+
+
+    # ------------------------------------------------------------             
                 
-                
-                current_state = self._get_state(int(elbow_vertical_angle))
+                avg_shoulder_angle = (left_shoulder_vertical_angle + right_shoulder_vertical_angle)/2
+                current_state = self._get_state(avg_shoulder_angle)
                 self.state_tracker['curr_state'] = current_state
                 self._update_state_sequence(current_state)
 
@@ -387,13 +438,13 @@ class ProcessFrame:
                 # -------------------------------------- PERFORM FEEDBACK ACTIONS --------------------------------------
 
                 else:
-                    if shoulder_vertical_angle < self.thresholds['SHOULDER_THRESH']:
+                    if avg_shoulder_angle < self.thresholds['SHOULDER_THRESH']:
                         self.state_tracker['DISPLAY_TEXT'][1] = True
                         self.state_tracker['INCORRECT_POSTURE'] = True                        
                                         
                     
                     if self.state_tracker['state_seq'].count('s2')==1:
-                        self.state_tracker['CURL_MORE'] = True
+                        self.state_tracker['RAISE_HIGHER'] = True
                         
 
                     
@@ -409,92 +460,92 @@ class ProcessFrame:
 
                 
                 
-                # ----------------------------------- COMPUTE INACTIVITY ---------------------------------------------
+                # # ----------------------------------- COMPUTE INACTIVITY ---------------------------------------------
 
-                display_inactivity = False
+                # display_inactivity = False
                 
-                if self.state_tracker['curr_state'] == self.state_tracker['prev_state']:
+                # if self.state_tracker['curr_state'] == self.state_tracker['prev_state']:
 
-                    end_time = time.perf_counter()
-                    self.state_tracker['INACTIVE_TIME'] += end_time - self.state_tracker['start_inactive_time']
-                    self.state_tracker['start_inactive_time'] = end_time
+                #     end_time = time.perf_counter()
+                #     self.state_tracker['INACTIVE_TIME'] += end_time - self.state_tracker['start_inactive_time']
+                #     self.state_tracker['start_inactive_time'] = end_time
 
-                    if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
-                        self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])
-                        print("REP: ", self.state_tracker['REP_COUNT'], " IMPROPER_REP: ", self.state_tracker['IMPROPER_REP'])
-                        self.state_tracker['REP_COUNT'] = 0
-                        self.state_tracker['IMPROPER_REP'] = 0
-                        display_inactivity = True
+                #     if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
+                #         self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])
+                #         print("REP: ", self.state_tracker['REP_COUNT'], " IMPROPER_REP: ", self.state_tracker['IMPROPER_REP'])
+                #         self.state_tracker['REP_COUNT'] = 0
+                #         self.state_tracker['IMPROPER_REP'] = 0
+                #         display_inactivity = True
 
                 
-                else:
+                # else:
                     
-                    self.state_tracker['start_inactive_time'] = time.perf_counter()
-                    self.state_tracker['INACTIVE_TIME'] = 0.0
+                #     self.state_tracker['start_inactive_time'] = time.perf_counter()
+                #     self.state_tracker['INACTIVE_TIME'] = 0.0
 
-                # -------------------------------------------------------------------------------------------------------
-                # with open('offset_angle.txt', 'a') as f:
-                #     f.write("HELLO7")
-                shoulder_text_coord_x = shoulder_coord[0] + 10
-                elbow_text_coord_x = elbow_coord[0] + 15
-                #ankle_text_coord_x = ankle_coord[0] + 10
+                # # -------------------------------------------------------------------------------------------------------
+                # # with open('offset_angle.txt', 'a') as f:
+                # #     f.write("HELLO7")
+                # shoulder_text_coord_x = shoulder_coord[0] + 10
+                # elbow_text_coord_x = elbow_coord[0] + 15
+                # #ankle_text_coord_x = ankle_coord[0] + 10
 
-                if self.flip_frame:
-                    frame = cv2.flip(frame, 1)
-                    shoulder_text_coord_x = frame_width - shoulder_coord[0] + 10
-                    elbow_text_coord_x = frame_width - elbow_coord[0] + 15
-                    #ankle_text_coord_x = frame_width - ankle_coord[0] + 10
+                # if self.flip_frame:
+                #     frame = cv2.flip(frame, 1)
+                #     shoulder_text_coord_x = frame_width - shoulder_coord[0] + 10
+                #     elbow_text_coord_x = frame_width - elbow_coord[0] + 15
+                #     #ankle_text_coord_x = frame_width - ankle_coord[0] + 10
                
-                if 's3' in self.state_tracker['state_seq'] or current_state == 's1':
-                    self.state_tracker['CURL_MORE'] = False
+                # if 's3' in self.state_tracker['state_seq'] or current_state == 's1':
+                #     self.state_tracker['RAISE_HIGHER'] = False
                 
-                # with open('offset_angle.txt', 'a') as f:
-                #     f.write("HELLO8")
+                # # with open('offset_angle.txt', 'a') as f:
+                # #     f.write("HELLO8")
 
-                self.state_tracker['COUNT_FRAMES'][self.state_tracker['DISPLAY_TEXT']]+=1
+                # self.state_tracker['COUNT_FRAMES'][self.state_tracker['DISPLAY_TEXT']]+=1
 
-                frame = self._show_feedback(frame, self.state_tracker['COUNT_FRAMES'], self.FEEDBACK_ID_MAP, self.state_tracker['CURL_MORE'])
+                # frame = self._show_feedback(frame, self.state_tracker['COUNT_FRAMES'], self.FEEDBACK_ID_MAP, self.state_tracker['RAISE_HIGHER'])
 
-                if display_inactivity:
-                    # cv2.putText(frame, 'Resetting COUNTERS due to inactivity!!!', (10, frame_height - 20), self.font, 0.5, self.COLORS['blue'], 2, lineType=self.linetype)
-                    play_sound = 'reset_counters'
-                    self.state_tracker['start_inactive_time'] = time.perf_counter()
-                    self.state_tracker['INACTIVE_TIME'] = 0.0
+                # if display_inactivity:
+                #     # cv2.putText(frame, 'Resetting COUNTERS due to inactivity!!!', (10, frame_height - 20), self.font, 0.5, self.COLORS['blue'], 2, lineType=self.linetype)
+                #     play_sound = 'reset_counters'
+                #     self.state_tracker['start_inactive_time'] = time.perf_counter()
+                #     self.state_tracker['INACTIVE_TIME'] = 0.0
                 
-                cv2.putText(frame, str(int(shoulder_vertical_angle)), (shoulder_text_coord_x, shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
-                cv2.putText(frame, str(int(elbow_vertical_angle)), (elbow_text_coord_x, elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
-                #cv2.putText(frame, str(int(ankle_vertical_angle)), (ankle_text_coord_x, ankle_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+                # cv2.putText(frame, str(int(shoulder_vertical_angle)), (shoulder_text_coord_x, shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+                # cv2.putText(frame, str(int(elbow_vertical_angle)), (elbow_text_coord_x, elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+                # #cv2.putText(frame, str(int(ankle_vertical_angle)), (ankle_text_coord_x, ankle_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
 
-                # with open('offset_angle.txt', 'a') as f:
-                #     f.write("HELLO9")
-                draw_text(
-                    frame, 
-                    "CORRECT: " + str(self.state_tracker['REP_COUNT']), 
-                    pos=(int(frame_width*0.68), 30),
-                    text_color=(255, 255, 230),
-                    font_scale=0.7,
-                    text_color_bg=(18, 185, 0)
-                )  
+                # # with open('offset_angle.txt', 'a') as f:
+                # #     f.write("HELLO9")
+                # draw_text(
+                #     frame, 
+                #     "CORRECT: " + str(self.state_tracker['REP_COUNT']), 
+                #     pos=(int(frame_width*0.68), 30),
+                #     text_color=(255, 255, 230),
+                #     font_scale=0.7,
+                #     text_color_bg=(18, 185, 0)
+                # )  
 
-                draw_text(
-                    frame, 
-                    "INCORRECT: " + str(self.state_tracker['IMPROPER_REP']), 
-                    pos=(int(frame_width*0.68), 80),
-                    text_color=(255, 255, 230),
-                    font_scale=0.7,
-                    text_color_bg=(221, 0, 0),
+                # draw_text(
+                #     frame, 
+                #     "INCORRECT: " + str(self.state_tracker['IMPROPER_REP']), 
+                #     pos=(int(frame_width*0.68), 80),
+                #     text_color=(255, 255, 230),
+                #     font_scale=0.7,
+                #     text_color_bg=(221, 0, 0),
                     
-                )  
-                # with open('offset_angle.txt', 'a') as f:
-                #     f.write("HELLO10")
-                self.state_tracker['DISPLAY_TEXT'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = False
-                self.state_tracker['COUNT_FRAMES'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = 0    
-                self.state_tracker['prev_state'] = current_state
+                # )  
+                # # with open('offset_angle.txt', 'a') as f:
+                # #     f.write("HELLO10")
+                # self.state_tracker['DISPLAY_TEXT'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = False
+                # self.state_tracker['COUNT_FRAMES'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = 0    
+                # self.state_tracker['prev_state'] = current_state
                                   
         else:
 
-            if self.flip_frame:
-                frame = cv2.flip(frame, 1)
+            # if self.flip_frame:
+            #     frame = cv2.flip(frame, 1)
 
             end_time = time.perf_counter()
             self.state_tracker['INACTIVE_TIME'] += end_time - self.state_tracker['start_inactive_time']

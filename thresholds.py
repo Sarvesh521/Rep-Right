@@ -7,12 +7,17 @@ def get_thresholds_beginner():
                             'NORMAL' : (0,  32),
                             'TRANS'  : (35, 65),
                             'PASS'   : (70, 95)
-                           }
+    }
     
     _ANGLE_ELBOW_WRIST_VERT = {
                             'NORMAL' : (180,  121),
                             'TRANS'  : (120, 36),
                             'PASS'   : (35, 0)
+    }   
+    _ANGLE_SHOULDER_ELBOW_VERT = {
+                            'NORMAL' : (180,  161),
+                            'TRANS'  : (160, 106),
+                            'PASS'   : (105, 95)
     }
 
         
@@ -44,8 +49,8 @@ def get_thresholds_beginner():
                             
                     },
     
-    "Raises" : {
-                        'ELBOW_WRIST_VERT': _ANGLE_ELBOW_WRIST_VERT,
+    "RAISES" : {
+                        'SHOULDER_ELBOW_VERT': _ANGLE_SHOULDER_ELBOW_VERT,
 
                         'SHOULDER_THRESH'   : 130,
                         # 'WRIST_THRESH'   : 45,
