@@ -94,8 +94,11 @@ class ProcessFrame:
                                 1: ('LOWER YOUR ELBOW', 215, (0, 153, 255))
                                }
 
-        
+        self.session = []
 
+
+    def get_session_data(self):
+        return self.session
 
     def _get_state(self, elbow_angle):
         
@@ -165,8 +168,8 @@ class ProcessFrame:
         keypoints = pose.process(frame)
 
         if keypoints.pose_landmarks:
-            with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLOHELLOWDFHJK")
+            # with open('offset_angle.txt', 'a') as f:
+            #         f.write("HELLOHELLOWDFHJK")
             ps_lm = keypoints.pose_landmarks
 
             nose_coord = get_landmark_features(ps_lm.landmark, self.dict_features, 'nose', frame_width, frame_height)
@@ -186,6 +189,7 @@ class ProcessFrame:
                 self.state_tracker['start_inactive_time_front'] = end_time
 
                 if self.state_tracker['INACTIVE_TIME_FRONT'] >= self.thresholds['INACTIVE_THRESH']:
+                    self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])  # Save session data.
                     self.state_tracker['REP_COUNT'] = 0
                     self.state_tracker['IMPROPER_REP'] = 0
                     display_inactivity = True
@@ -252,8 +256,8 @@ class ProcessFrame:
             
             # Camera is aligned properly.
             else:
-                with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLO1")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO1")
                 self.state_tracker['INACTIVE_TIME_FRONT'] = 0.0
                 self.state_tracker['start_inactive_time_front'] = time.perf_counter()
 
@@ -294,8 +298,8 @@ class ProcessFrame:
                     
 
                 # ------------------- Verical Angle calculation --------------
-                with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLO2")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO2")
                 shoulder_vertical_angle = find_angle(elbow_coord, np.array([shoulder_coord[0], 0]), shoulder_coord)
                 cv2.ellipse(frame, shoulder_coord, (30, 30), 
                             angle = 0, startAngle = -90, endAngle = -90+multiplier*shoulder_vertical_angle, 
@@ -307,13 +311,13 @@ class ProcessFrame:
 
 
                 elbow_vertical_angle = find_angle(wrist_coord, np.array([elbow_coord[0], 0]), elbow_coord)
-                cv2.ellipse(frame, wrist_coord, (20, 20), 
-                            angle = 0, startAngle = -90, endAngle = -90-multiplier*elbow_vertical_angle, 
+                cv2.ellipse(frame, elbow_coord, (20, 20), 
+                            angle = 0, startAngle = -90, endAngle = -90+multiplier*elbow_vertical_angle, 
                             color = self.COLORS['white'], thickness = 3,  lineType = self.linetype)
 
                 draw_dotted_line(frame, elbow_coord, start=elbow_coord[1]-50, end=elbow_coord[1]+20, line_color=self.COLORS['blue'])
-                with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLO3")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO3")
 
                 #commented this for now, will work on it when handling within wrist
 
@@ -343,8 +347,8 @@ class ProcessFrame:
                 # cv2.circle(frame, knee_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
                 # cv2.circle(frame, ankle_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
                 # cv2.circle(frame, foot_coord, 7, self.COLORS['yellow'], -1,  lineType=self.linetype)
-                with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLO4")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO4")
                 
                 
                 current_state = self._get_state(int(elbow_vertical_angle))
@@ -376,8 +380,8 @@ class ProcessFrame:
 
                 # ----------------------------------------------------------------------------------------------------
 
-                    with open('offset_angle.txt', 'a') as f:
-                        f.write("HELLO5")
+                    # with open('offset_angle.txt', 'a') as f:
+                    #     f.write("HELLO5")
 
 
                 # -------------------------------------- PERFORM FEEDBACK ACTIONS --------------------------------------
@@ -396,8 +400,8 @@ class ProcessFrame:
                     # if (ankle_vertical_angle > self.thresholds['ANKLE_THRESH']):
                     #     self.state_tracker['DISPLAY_TEXT'][2] = True
                     #     self.state_tracker['INCORRECT_POSTURE'] = True
-                    with open('offset_angle.txt', 'a') as f:
-                        f.write("HELLO6")
+                    # with open('offset_angle.txt', 'a') as f:
+                    #     f.write("HELLO6")
 
 
                 # ----------------------------------------------------------------------------------------------------
@@ -416,6 +420,8 @@ class ProcessFrame:
                     self.state_tracker['start_inactive_time'] = end_time
 
                     if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
+                        self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])
+                        print("REP: ", self.state_tracker['REP_COUNT'], " IMPROPER_REP: ", self.state_tracker['IMPROPER_REP'])
                         self.state_tracker['REP_COUNT'] = 0
                         self.state_tracker['IMPROPER_REP'] = 0
                         display_inactivity = True
@@ -427,8 +433,8 @@ class ProcessFrame:
                     self.state_tracker['INACTIVE_TIME'] = 0.0
 
                 # -------------------------------------------------------------------------------------------------------
-                with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLO7")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO7")
                 shoulder_text_coord_x = shoulder_coord[0] + 10
                 elbow_text_coord_x = elbow_coord[0] + 15
                 #ankle_text_coord_x = ankle_coord[0] + 10
@@ -442,8 +448,8 @@ class ProcessFrame:
                 if 's3' in self.state_tracker['state_seq'] or current_state == 's1':
                     self.state_tracker['CURL_MORE'] = False
                 
-                with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLO8")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO8")
 
                 self.state_tracker['COUNT_FRAMES'][self.state_tracker['DISPLAY_TEXT']]+=1
 
@@ -459,8 +465,8 @@ class ProcessFrame:
                 cv2.putText(frame, str(int(elbow_vertical_angle)), (elbow_text_coord_x, elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
                 #cv2.putText(frame, str(int(ankle_vertical_angle)), (ankle_text_coord_x, ankle_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
 
-                with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLO9")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO9")
                 draw_text(
                     frame, 
                     "CORRECT: " + str(self.state_tracker['REP_COUNT']), 
@@ -479,8 +485,8 @@ class ProcessFrame:
                     text_color_bg=(221, 0, 0),
                     
                 )  
-                with open('offset_angle.txt', 'a') as f:
-                    f.write("HELLO10")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO10")
                 self.state_tracker['DISPLAY_TEXT'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = False
                 self.state_tracker['COUNT_FRAMES'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = 0    
                 self.state_tracker['prev_state'] = current_state
@@ -496,6 +502,8 @@ class ProcessFrame:
             display_inactivity = False
 
             if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
+                self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])  # Save session data.
+                open('offset_angle.txt', 'a').write("REP: "+str(self.state_tracker['REP_COUNT'])+" IMPROPER_REP: "+str(self.state_tracker['IMPROPER_REP'])+'\n')
                 self.state_tracker['REP_COUNT'] = 0
                 self.state_tracker['IMPROPER_REP'] = 0
                 # cv2.putText(frame, 'Resetting SQUAT_COUNT due to inactivity!!!', (10, frame_height - 25), self.font, 0.7, self.COLORS['blue'], 2)
