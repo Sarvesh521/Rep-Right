@@ -82,8 +82,8 @@ class ProcessFrame:
             'INACTIVE_TIME_FRONT': 0.0,
 
             # 0 --> Bend Backwards, 1 --> Bend Forward, 2 --> Keep shin straight, 3 --> Deep squat
-            'DISPLAY_TEXT' : np.full((4,), False),
-            'COUNT_FRAMES' : np.zeros((4,), dtype=np.int64),
+            'DISPLAY_TEXT' : np.full((5,), False),
+            'COUNT_FRAMES' : np.zeros((5,), dtype=np.int64),
 
             'RAISE_HIGHER': False,
 
@@ -101,7 +101,7 @@ class ProcessFrame:
                                 0: ('FLARE ELBOWS MORE', 215, (0, 153, 255)),
                                 1: ("DON'T HUNCH SHOULDERS", 250, (0, 153, 255)),
                                 2: ("ASYMMETRIC FORM", 285, (0, 153, 255)), 
-
+                                3: ("IMPROPER START FORM", 320, (0, 153, 255))
                                }
 
         self.session = []
@@ -427,10 +427,14 @@ class ProcessFrame:
                     elif self.state_tracker['INCORRECT_POSTURE']:
                         self.state_tracker['IMPROPER_REP']+=1
                         play_sound = 'incorrect'
-                        
                     
                     self.state_tracker['state_seq'] = []
                     self.state_tracker['INCORRECT_POSTURE'] = False
+
+
+                    if(left_wrist_coord[0] < right_wrist_coord[0] or left_wrist_coord[1]<left_elbow_coord[1] or right_wrist_coord[1]<right_elbow_coord[1]):
+                        self.state_tracker['DISPLAY_TEXT'][3] = True
+                        self.state_tracker['INCORRECT_POSTURE'] = True
 
                     
                     # if(dist(left_ear_coord, left_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6 or dist(right_ear_coord, right_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6):
@@ -467,16 +471,12 @@ class ProcessFrame:
 
                         
                     if((left_elbow_coord[0] > left_wrist_coord[0] or right_elbow_coord[0] < right_wrist_coord[0]) and (self.state_tracker['state_seq'].count('s2')==1 or self.state_tracker['state_seq'].count('s3')==1)):
-                        self.state_tracker['RAISE_HIGHER'] = True
                         self.state_tracker['DISPLAY_TEXT'][0] = True
                         self.state_tracker['INCORRECT_POSTURE'] = True
 
-                    if(dist(left_ear_coord, left_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6 or dist(right_ear_coord, right_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6):
+                    if((dist(left_ear_coord, left_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6 or dist(right_ear_coord, right_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6) and (self.state_tracker['state_seq'].count('s2')==1 or self.state_tracker['state_seq'].count('s3')==1)):
                         self.state_tracker['DISPLAY_TEXT'][1] = True
                         self.state_tracker['INCORRECT_POSTURE'] = True
-
-                    else:
-                        self.state_tracker['DISPLAY_TEXT'][1] = False
                     
                     # if (ankle_vertical_angle > self.thresholds['ANKLE_THRESH']):
                     #     self.state_tracker['DISPLAY_TEXT'][2] = True
@@ -640,8 +640,8 @@ class ProcessFrame:
             self.state_tracker['curr_state'] = None
             self.state_tracker['INACTIVE_TIME_FRONT'] = 0.0
             self.state_tracker['INCORRECT_POSTURE'] = False
-            self.state_tracker['DISPLAY_TEXT'] = np.full((4,), False)
-            self.state_tracker['COUNT_FRAMES'] = np.zeros((3,), dtype=np.int64)
+            self.state_tracker['DISPLAY_TEXT'] = np.full((5,), False)
+            self.state_tracker['COUNT_FRAMES'] = np.zeros((5,), dtype=np.int64)
             self.state_tracker['start_inactive_time_front'] = time.perf_counter()
 
   
