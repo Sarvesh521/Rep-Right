@@ -3,6 +3,12 @@ import cv2
 import numpy as np
 from utils import find_angle, get_landmark_features, draw_text, draw_dotted_line
 
+def side(a, b, c):
+  return 1 if (b[0] - a[0])*(c[1] - a[1]) - (b[1] - a[1])*(c[0] - a[0])<0 else -1
+
+def dist(a, b):
+    return np.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+
 
 class ProcessFrame:
     def __init__(self, thresholds, flip_frame = False):
@@ -46,7 +52,8 @@ class ProcessFrame:
                                 'hip'     : 23,
                                 'knee'    : 25,
                                 'ankle'   : 27,
-                                'foot'    : 31
+                                'foot'    : 31,
+                                'ear'     : 7
                              }
 
         self.right_features = {
@@ -56,7 +63,8 @@ class ProcessFrame:
                                 'hip'     : 24,
                                 'knee'    : 26,
                                 'ankle'   : 28,
-                                'foot'    : 32
+                                'foot'    : 32,
+                                'ear'     : 8
                               }
 
         self.dict_features['left'] = self.left_features
@@ -91,8 +99,9 @@ class ProcessFrame:
         
         self.FEEDBACK_ID_MAP = {
                                 0: ('FLARE ELBOWS MORE', 215, (0, 153, 255)),
-                                1: ("DON'T HUNCH SHOULDERS", 215, (0, 153, 255)),
-                                2: ("ASYMMETRIC FORM", 215, (0, 153, 255))
+                                1: ("DON'T HUNCH SHOULDERS", 250, (0, 153, 255)),
+                                2: ("ASYMMETRIC FORM", 285, (0, 153, 255)), 
+
                                }
 
         self.session = []
@@ -105,11 +114,11 @@ class ProcessFrame:
         
         elbow = None        
 
-        if self.thresholds['SHOULDER_ELBOW_VERT']['NORMAL'][1] <= avg_shoulder_angle <= self.thresholds['SHOULDER_ELBOW_VERT']['NORMAL'][0]:
+        if self.thresholds['SHOULDER_ELBOW_VERT']['NORMAL'][0] >= avg_shoulder_angle >= self.thresholds['SHOULDER_ELBOW_VERT']['NORMAL'][1]:
             elbow = 1
-        elif self.thresholds['SHOULDER_ELBOW_VERT']['TRANS'][1] <= avg_shoulder_angle <= self.thresholds['SHOULDER_ELBOW_VERT']['TRANS'][0]:
+        elif self.thresholds['SHOULDER_ELBOW_VERT']['TRANS'][0] >= avg_shoulder_angle >= self.thresholds['SHOULDER_ELBOW_VERT']['TRANS'][1]:
             elbow = 2
-        elif self.thresholds['SHOULDER_ELBOW_VERT']['PASS'][1] <= avg_shoulder_angle <= self.thresholds['SHOULDER_ELBOW_VERT']['PASS'][0]:
+        elif self.thresholds['SHOULDER_ELBOW_VERT']['PASS'][0] >= avg_shoulder_angle >= self.thresholds['SHOULDER_ELBOW_VERT']['PASS'][1]:
             elbow = 3
 
         return f's{elbow}' if elbow else None
@@ -174,13 +183,12 @@ class ProcessFrame:
             ps_lm = keypoints.pose_landmarks
 
             nose_coord = get_landmark_features(ps_lm.landmark, self.dict_features, 'nose', frame_width, frame_height)
-            left_shoulder_coord, left_elbow_coord, left_wrist_coord, left_hip_coord, left_knee_coord, left_ankle_coord, left_foot_coord = \
+            left_shoulder_coord, left_elbow_coord, left_wrist_coord, left_hip_coord, left_knee_coord, left_ankle_coord, left_foot_coord, left_ear_coord= \
                                 get_landmark_features(ps_lm.landmark, self.dict_features, 'left', frame_width, frame_height)
-            right_shoulder_coord, right_elbow_coord, right_wrist_coord, right_hip_coord, right_knee_coord, right_ankle_coord, right_foot_coord = \
+            right_shoulder_coord, right_elbow_coord, right_wrist_coord, right_hip_coord, right_knee_coord, right_ankle_coord, right_foot_coord, right_ear_coord = \
                                 get_landmark_features(ps_lm.landmark, self.dict_features, 'right', frame_width, frame_height)
 
             offset_angle = find_angle(left_shoulder_coord, right_shoulder_coord, nose_coord)
-            print(offset_angle)
             if offset_angle < self.thresholds['OFFSET_THRESH']:
                 
                 display_inactivity = False
@@ -263,9 +271,6 @@ class ProcessFrame:
                 self.state_tracker['start_inactive_time_front'] = time.perf_counter()
 
 
-                dist_l_sh_elb = abs(left_elbow_coord[0]- left_shoulder_coord[0])
-                dist_r_sh_elb = abs(right_elbow_coord[0] - right_shoulder_coord)[0]
-
 
                  #if we take l then its *- 1
                 
@@ -307,8 +312,9 @@ class ProcessFrame:
 
                 left_elbow_vertical_angle = find_angle(left_shoulder_coord, np.array([left_elbow_coord[0], 0]), left_elbow_coord)
                 left_writst_elbow_shoulder_angle = find_angle(left_wrist_coord, left_shoulder_coord, left_elbow_coord)
+                
                 cv2.ellipse(frame, left_elbow_coord, (20, 20),
-                            angle = -90, startAngle = -left_elbow_vertical_angle, endAngle = -left_elbow_vertical_angle+left_writst_elbow_shoulder_angle, 
+                            angle = -90, startAngle = -left_elbow_vertical_angle, endAngle = -left_elbow_vertical_angle+side(left_shoulder_coord, left_elbow_coord, left_wrist_coord)*abs(left_writst_elbow_shoulder_angle), 
                             color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
                 draw_dotted_line(frame, left_elbow_coord, start=left_elbow_coord[1]-50, end=left_elbow_coord[1]+20, line_color=self.COLORS['blue'])
 
@@ -319,9 +325,12 @@ class ProcessFrame:
                             color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
                 draw_dotted_line(frame, right_shoulder_coord, start=right_shoulder_coord[1]-80, end=right_shoulder_coord[1]+20, line_color=self.COLORS['blue'])
 
-                right_elbow_vertical_angle = find_angle(right_wrist_coord, np.array([right_elbow_coord[0], 0]), right_elbow_coord)
+
+                right_elbow_vertical_angle = find_angle(right_shoulder_coord, np.array([right_elbow_coord[0], 0]), right_elbow_coord)
+                right_writst_elbow_shoulder_angle = find_angle(right_wrist_coord, right_shoulder_coord, right_elbow_coord)
+                
                 cv2.ellipse(frame, right_elbow_coord, (20, 20),
-                            angle = 0, startAngle = -90, endAngle = -90+right_elbow_vertical_angle, 
+                            angle = -90, startAngle = +right_elbow_vertical_angle, endAngle = right_elbow_vertical_angle+side(right_shoulder_coord, right_elbow_coord, right_wrist_coord)*abs(right_writst_elbow_shoulder_angle), 
                             color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
                 draw_dotted_line(frame, right_elbow_coord, start=right_elbow_coord[1]-50, end=right_elbow_coord[1]+20, line_color=self.COLORS['blue'])
 
@@ -395,6 +404,7 @@ class ProcessFrame:
     # ------------------------------------------------------------             
                 
                 avg_shoulder_angle = (left_shoulder_vertical_angle + right_shoulder_vertical_angle)/2
+                # print(left = left_shoulder_vertical_angle, right = right_shoulder_vertical_angle)
                 current_state = self._get_state(avg_shoulder_angle)
                 self.state_tracker['curr_state'] = current_state
                 self._update_state_sequence(current_state)
@@ -402,6 +412,7 @@ class ProcessFrame:
 
 
                 # -------------------------------------- COMPUTE COUNTERS --------------------------------------
+                # print("left dist ratio: ", dist(left_shoulder_coord, left_ear_coord)/dist(left_ear_coord, right_ear_coord))
                 print(current_state)
                 if current_state == 's1':
 
@@ -421,6 +432,13 @@ class ProcessFrame:
                     self.state_tracker['state_seq'] = []
                     self.state_tracker['INCORRECT_POSTURE'] = False
 
+                    
+                    # if(dist(left_ear_coord, left_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6 or dist(right_ear_coord, right_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6):
+                    #     self.state_tracker['DISPLAY_TEXT'][1] = True
+
+                    # else:
+                    #     self.state_tracker['DISPLAY_TEXT'][1] = False
+
 
                 # ----------------------------------------------------------------------------------------------------
 
@@ -431,15 +449,34 @@ class ProcessFrame:
                 # -------------------------------------- PERFORM FEEDBACK ACTIONS --------------------------------------
 
                 else:
-                    if avg_shoulder_angle < self.thresholds['SHOULDER_THRESH']:
-                        self.state_tracker['DISPLAY_TEXT'][1] = True
-                        self.state_tracker['INCORRECT_POSTURE'] = True                        
+                    # if avg_shoulder_angle < self.thresholds['SHOULDER_THRESH']:
+                    #     self.state_tracker['DISPLAY_TEXT'][1] = True
+                    #     self.state_tracker['INCORRECT_POSTURE'] = True                        
                                         
                     
-                    if self.state_tracker['state_seq'].count('s2')==1:
-                        self.state_tracker['RAISE_HIGHER'] = True
-                        
+                    # if self.state_tracker['state_seq'].count('s2')==1:
+                    #     self.state_tracker['RAISE_HIGHER'] = True
 
+                    diff = abs(left_shoulder_vertical_angle - right_shoulder_vertical_angle)
+                    if diff>self.thresholds['DIFF_THRESH']:
+                        self.state_tracker['DISPLAY_TEXT'][2] = True
+                        self.state_tracker['INCORRECT_POSTURE'] = True
+                    
+                    if(self.state_tracker['state_seq'].count('s2')==1):
+                        self.state_tracker['RAISE_HIGHER'] = True
+
+                        
+                    if((left_elbow_coord[0] > left_wrist_coord[0] or right_elbow_coord[0] < right_wrist_coord[0]) and (self.state_tracker['state_seq'].count('s2')==1 or self.state_tracker['state_seq'].count('s3')==1)):
+                        self.state_tracker['RAISE_HIGHER'] = True
+                        self.state_tracker['DISPLAY_TEXT'][0] = True
+                        self.state_tracker['INCORRECT_POSTURE'] = True
+
+                    if(dist(left_ear_coord, left_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6 or dist(right_ear_coord, right_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6):
+                        self.state_tracker['DISPLAY_TEXT'][1] = True
+                        self.state_tracker['INCORRECT_POSTURE'] = True
+
+                    else:
+                        self.state_tracker['DISPLAY_TEXT'][1] = False
                     
                     # if (ankle_vertical_angle > self.thresholds['ANKLE_THRESH']):
                     #     self.state_tracker['DISPLAY_TEXT'][2] = True
@@ -455,85 +492,101 @@ class ProcessFrame:
                 
                 # # ----------------------------------- COMPUTE INACTIVITY ---------------------------------------------
 
-                # display_inactivity = False
+                display_inactivity = False
                 
-                # if self.state_tracker['curr_state'] == self.state_tracker['prev_state']:
+                if self.state_tracker['curr_state'] == self.state_tracker['prev_state']:
 
-                #     end_time = time.perf_counter()
-                #     self.state_tracker['INACTIVE_TIME'] += end_time - self.state_tracker['start_inactive_time']
-                #     self.state_tracker['start_inactive_time'] = end_time
+                    end_time = time.perf_counter()
+                    self.state_tracker['INACTIVE_TIME'] += end_time - self.state_tracker['start_inactive_time']
+                    self.state_tracker['start_inactive_time'] = end_time
 
-                #     if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
-                #         self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])
-                #         print("REP: ", self.state_tracker['REP_COUNT'], " IMPROPER_REP: ", self.state_tracker['IMPROPER_REP'])
-                #         self.state_tracker['REP_COUNT'] = 0
-                #         self.state_tracker['IMPROPER_REP'] = 0
-                #         display_inactivity = True
+                    if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
+                        self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])
+                        print("REP: ", self.state_tracker['REP_COUNT'], " IMPROPER_REP: ", self.state_tracker['IMPROPER_REP'])
+                        self.state_tracker['REP_COUNT'] = 0
+                        self.state_tracker['IMPROPER_REP'] = 0
+                        display_inactivity = True
 
                 
-                # else:
+                else:
                     
-                #     self.state_tracker['start_inactive_time'] = time.perf_counter()
-                #     self.state_tracker['INACTIVE_TIME'] = 0.0
+                    self.state_tracker['start_inactive_time'] = time.perf_counter()
+                    self.state_tracker['INACTIVE_TIME'] = 0.0
 
-                # # -------------------------------------------------------------------------------------------------------
-                # # with open('offset_angle.txt', 'a') as f:
-                # #     f.write("HELLO7")
+                # -------------------------------------------------------------------------------------------------------
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO7")
                 # shoulder_text_coord_x = shoulder_coord[0] + 10
                 # elbow_text_coord_x = elbow_coord[0] + 15
-                # #ankle_text_coord_x = ankle_coord[0] + 10
+                left_shoulder_coord_x = left_shoulder_coord[0] + 10
+                left_elbow_coord_x = left_elbow_coord[0] + 15
+
+                right_shoulder_coord_x = right_shoulder_coord[0] + 10
+                right_elbow_coord_x = right_elbow_coord[0] + 15
+
+                #ankle_text_coord_x = ankle_coord[0] + 10
 
                 if self.flip_frame:
                     frame = cv2.flip(frame, 1)
-                #     shoulder_text_coord_x = frame_width - shoulder_coord[0] + 10
-                #     elbow_text_coord_x = frame_width - elbow_coord[0] + 15
-                #     #ankle_text_coord_x = frame_width - ankle_coord[0] + 10
+        
+                    left_shoulder_coord_x = frame_width - left_shoulder_coord[0] + 10
+                    left_elbow_coord_x = frame_width - left_elbow_coord[0] + 15
+
+                    right_shoulder_coord_x = frame_width - right_shoulder_coord[0] + 10
+                    right_elbow_coord_x = frame_width - right_elbow_coord[0] + 15
                
-                # if 's3' in self.state_tracker['state_seq'] or current_state == 's1':
-                #     self.state_tracker['RAISE_HIGHER'] = False
+                if 's3' in self.state_tracker['state_seq'] or current_state == 's1':
+                    self.state_tracker['RAISE_HIGHER'] = False
                 
-                # # with open('offset_angle.txt', 'a') as f:
-                # #     f.write("HELLO8")
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO8")
 
-                # self.state_tracker['COUNT_FRAMES'][self.state_tracker['DISPLAY_TEXT']]+=1
+                self.state_tracker['COUNT_FRAMES'][self.state_tracker['DISPLAY_TEXT']]+=1
 
-                # frame = self._show_feedback(frame, self.state_tracker['COUNT_FRAMES'], self.FEEDBACK_ID_MAP, self.state_tracker['RAISE_HIGHER'])
+                frame = self._show_feedback(frame, self.state_tracker['COUNT_FRAMES'], self.FEEDBACK_ID_MAP, self.state_tracker['RAISE_HIGHER'])
 
-                # if display_inactivity:
-                #     # cv2.putText(frame, 'Resetting COUNTERS due to inactivity!!!', (10, frame_height - 20), self.font, 0.5, self.COLORS['blue'], 2, lineType=self.linetype)
-                #     play_sound = 'reset_counters'
-                #     self.state_tracker['start_inactive_time'] = time.perf_counter()
-                #     self.state_tracker['INACTIVE_TIME'] = 0.0
+                if display_inactivity:
+                    # cv2.putText(frame, 'Resetting COUNTERS due to inactivity!!!', (10, frame_height - 20), self.font, 0.5, self.COLORS['blue'], 2, lineType=self.linetype)
+                    play_sound = 'reset_counters'
+                    self.state_tracker['start_inactive_time'] = time.perf_counter()
+                    self.state_tracker['INACTIVE_TIME'] = 0.0
                 
                 # cv2.putText(frame, str(int(shoulder_vertical_angle)), (shoulder_text_coord_x, shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
                 # cv2.putText(frame, str(int(elbow_vertical_angle)), (elbow_text_coord_x, elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
-                # #cv2.putText(frame, str(int(ankle_vertical_angle)), (ankle_text_coord_x, ankle_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
 
-                # # with open('offset_angle.txt', 'a') as f:
-                # #     f.write("HELLO9")
-                # draw_text(
-                #     frame, 
-                #     "CORRECT: " + str(self.state_tracker['REP_COUNT']), 
-                #     pos=(int(frame_width*0.68), 30),
-                #     text_color=(255, 255, 230),
-                #     font_scale=0.7,
-                #     text_color_bg=(18, 185, 0)
-                # )  
+                cv2.putText(frame, str(int(left_shoulder_vertical_angle)), (left_shoulder_coord_x, left_shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+                cv2.putText(frame, str(int(left_elbow_vertical_angle)), (left_elbow_coord_x, left_elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
 
-                # draw_text(
-                #     frame, 
-                #     "INCORRECT: " + str(self.state_tracker['IMPROPER_REP']), 
-                #     pos=(int(frame_width*0.68), 80),
-                #     text_color=(255, 255, 230),
-                #     font_scale=0.7,
-                #     text_color_bg=(221, 0, 0),
+                cv2.putText(frame, str(int(right_shoulder_vertical_angle)), (right_shoulder_coord_x, right_shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+                cv2.putText(frame, str(int(right_elbow_vertical_angle)), (right_elbow_coord_x, right_elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+
+                #cv2.putText(frame, str(int(ankle_vertical_angle)), (ankle_text_coord_x, ankle_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO9")
+                draw_text(
+                    frame, 
+                    "CORRECT: " + str(self.state_tracker['REP_COUNT']), 
+                    pos=(int(frame_width*0.68), 30),
+                    text_color=(255, 255, 230),
+                    font_scale=0.7,
+                    text_color_bg=(18, 185, 0)
+                )  
+
+                draw_text(
+                    frame, 
+                    "INCORRECT: " + str(self.state_tracker['IMPROPER_REP']), 
+                    pos=(int(frame_width*0.68), 80),
+                    text_color=(255, 255, 230),
+                    font_scale=0.7,
+                    text_color_bg=(221, 0, 0),
                     
-                # )  
-                # # with open('offset_angle.txt', 'a') as f:
-                # #     f.write("HELLO10")
-                # self.state_tracker['DISPLAY_TEXT'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = False
-                # self.state_tracker['COUNT_FRAMES'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = 0    
-                # self.state_tracker['prev_state'] = current_state
+                )  
+                # with open('offset_angle.txt', 'a') as f:
+                #     f.write("HELLO10")
+                self.state_tracker['DISPLAY_TEXT'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = False
+                self.state_tracker['COUNT_FRAMES'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = 0    
+                self.state_tracker['prev_state'] = current_state
                                   
         else:
 
@@ -587,7 +640,7 @@ class ProcessFrame:
             self.state_tracker['curr_state'] = None
             self.state_tracker['INACTIVE_TIME_FRONT'] = 0.0
             self.state_tracker['INCORRECT_POSTURE'] = False
-            self.state_tracker['DISPLAY_TEXT'] = np.full((3,), False)
+            self.state_tracker['DISPLAY_TEXT'] = np.full((4,), False)
             self.state_tracker['COUNT_FRAMES'] = np.zeros((3,), dtype=np.int64)
             self.state_tracker['start_inactive_time_front'] = time.perf_counter()
 
