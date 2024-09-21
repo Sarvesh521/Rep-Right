@@ -32,7 +32,7 @@ def get_thresholds_beginner():
     "CURL" : {
                         'ELBOW_WRIST_VERT': _ANGLE_ELBOW_WRIST_VERT,
 
-                        'SHOULDER_THRESH'   : 130,
+                        'SHOULDER_THRESH'   : 165,
                         # 'WRIST_THRESH'   : 45,
                         # 'ELBOW_THRESH': [50, 70, 95],
                         'ELBOW_THRESH': [150, 0, -20],
