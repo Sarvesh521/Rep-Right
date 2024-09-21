@@ -199,8 +199,8 @@ class ProcessFrame:
                 cv2.circle(frame, left_shoulder_coord, 7, self.COLORS['yellow'], -1)
                 cv2.circle(frame, right_shoulder_coord, 7, self.COLORS['magenta'], -1)
 
-                # if self.flip_frame:
-                #     frame = cv2.flip(frame, 1)
+                if self.flip_frame:
+                    frame = cv2.flip(frame, 1)
 
                 if display_inactivity:
                     # cv2.putText(frame, 'Resetting SQUAT_COUNT due to inactivity!!!', (10, frame_height - 90), 
@@ -263,16 +263,9 @@ class ProcessFrame:
                 self.state_tracker['start_inactive_time_front'] = time.perf_counter()
 
 
-                dist_l_sh_elb = abs(left_elbow_coord[1]- left_shoulder_coord[1])
-                dist_r_sh_elb = abs(right_elbow_coord[1] - right_shoulder_coord)[1]
+                dist_l_sh_elb = abs(left_elbow_coord[0]- left_shoulder_coord[0])
+                dist_r_sh_elb = abs(right_elbow_coord[0] - right_shoulder_coord)[0]
 
-                shoulder_coord = None
-                elbow_coord = None
-                wrist_coord = None
-                hip_coord = None
-                knee_coord = None
-                ankle_coord = None
-                foot_coord = None
 
                  #if we take l then its *- 1
                 
@@ -306,16 +299,16 @@ class ProcessFrame:
                 # ------------------- Verical Angle calculation --------------
                 # with open('offset_angle.txt', 'a') as f:
                 #     f.write("HELLO2")
-                print("HELLO: ", left_shoulder_coord)
                 left_shoulder_vertical_angle = find_angle(left_elbow_coord, np.array([left_shoulder_coord[0], 0]), left_shoulder_coord)
                 cv2.ellipse(frame, left_shoulder_coord, (30, 30), 
                             angle = 0, startAngle = 90, endAngle = -90+left_shoulder_vertical_angle,   #-90+multiplier*shoulder_vertical_angle 
                             color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
                 draw_dotted_line(frame, left_shoulder_coord, start=left_shoulder_coord[1]-80, end=left_shoulder_coord[1]+20, line_color=self.COLORS['blue'])
 
-                left_elbow_vertical_angle = find_angle(left_wrist_coord, np.array([left_elbow_coord[0], 0]), left_elbow_coord)
+                left_elbow_vertical_angle = find_angle(left_shoulder_coord, np.array([left_elbow_coord[0], 0]), left_elbow_coord)
+                left_writst_elbow_shoulder_angle = find_angle(left_wrist_coord, left_shoulder_coord, left_elbow_coord)
                 cv2.ellipse(frame, left_elbow_coord, (20, 20),
-                            angle = 0, startAngle = -90, endAngle = -90-left_elbow_vertical_angle, 
+                            angle = -90, startAngle = -left_elbow_vertical_angle, endAngle = -left_elbow_vertical_angle+left_writst_elbow_shoulder_angle, 
                             color = self.COLORS['white'], thickness = 3, lineType = self.linetype)
                 draw_dotted_line(frame, left_elbow_coord, start=left_elbow_coord[1]-50, end=left_elbow_coord[1]+20, line_color=self.COLORS['blue'])
 
@@ -490,8 +483,8 @@ class ProcessFrame:
                 # elbow_text_coord_x = elbow_coord[0] + 15
                 # #ankle_text_coord_x = ankle_coord[0] + 10
 
-                # if self.flip_frame:
-                #     frame = cv2.flip(frame, 1)
+                if self.flip_frame:
+                    frame = cv2.flip(frame, 1)
                 #     shoulder_text_coord_x = frame_width - shoulder_coord[0] + 10
                 #     elbow_text_coord_x = frame_width - elbow_coord[0] + 15
                 #     #ankle_text_coord_x = frame_width - ankle_coord[0] + 10
@@ -544,8 +537,8 @@ class ProcessFrame:
                                   
         else:
 
-            # if self.flip_frame:
-            #     frame = cv2.flip(frame, 1)
+            if self.flip_frame:
+                frame = cv2.flip(frame, 1)
 
             end_time = time.perf_counter()
             self.state_tracker['INACTIVE_TIME'] += end_time - self.state_tracker['start_inactive_time']
