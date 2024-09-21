@@ -15,8 +15,8 @@ def get_thresholds_beginner():
                             'PASS'   : (35, 0)
     }   
     _ANGLE_SHOULDER_ELBOW_VERT = {
-                            'NORMAL' : (180,  161),
-                            'TRANS'  : (160, 106),
+                            'NORMAL' : (180,  141),
+                            'TRANS'  : (140, 106),
                             'PASS'   : (105, 95)
     }
 
@@ -60,7 +60,9 @@ def get_thresholds_beginner():
                         'OFFSET_THRESH'    : 70.0,
                         'INACTIVE_THRESH'  : 15.0,
 
-                        'CNT_FRAME_THRESH' : 50 
+                        'CNT_FRAME_THRESH' : 50,
+
+                        'DIFF_THRESH' : 15
     }
     }
 

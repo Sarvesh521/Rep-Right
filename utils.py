@@ -121,8 +121,9 @@ def get_landmark_features(kp_results, dict_features, feature, frame_width, frame
         knee_coord   = get_landmark_array(kp_results, dict_features[feature]['knee'], frame_width, frame_height)
         ankle_coord   = get_landmark_array(kp_results, dict_features[feature]['ankle'], frame_width, frame_height)
         foot_coord   = get_landmark_array(kp_results, dict_features[feature]['foot'], frame_width, frame_height)
+        ear_coord   = get_landmark_array(kp_results, dict_features[feature]['ear'], frame_width, frame_height)
 
-        return shoulder_coord, elbow_coord, wrist_coord, hip_coord, knee_coord, ankle_coord, foot_coord
+        return shoulder_coord, elbow_coord, wrist_coord, hip_coord, knee_coord, ankle_coord, foot_coord, ear_coord
     
     else:
        raise ValueError("feature needs to be either 'nose', 'left' or 'right")
