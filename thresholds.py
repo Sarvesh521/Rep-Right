@@ -36,13 +36,27 @@ def get_thresholds_beginner():
                         # 'WRIST_THRESH'   : 45,
                         # 'ELBOW_THRESH': [50, 70, 95],
                         'ELBOW_THRESH': [150, 0, -20],
-
-                        'OFFSET_THRESH'    : 35.0,
+                        'OFFSET_THRESH'    : 70.0,
+                        #'OFFSET_THRESH'    : 35.0,
                         'INACTIVE_THRESH'  : 15.0,
 
                         'CNT_FRAME_THRESH' : 50
                             
-                    }
+                    },
+    
+    "Raises" : {
+                        'ELBOW_WRIST_VERT': _ANGLE_ELBOW_WRIST_VERT,
+
+                        'SHOULDER_THRESH'   : 130,
+                        # 'WRIST_THRESH'   : 45,
+                        # 'ELBOW_THRESH': [50, 70, 95],
+                        'ELBOW_THRESH': [150, 0, -20],
+
+                        'OFFSET_THRESH'    : 70.0,
+                        'INACTIVE_THRESH'  : 15.0,
+
+                        'CNT_FRAME_THRESH' : 50 
+    }
     }
 
     return thresholds
