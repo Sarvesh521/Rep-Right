@@ -50,10 +50,10 @@ def predict_video(video_path=None):
                 probabilities = torch.softmax(logits, dim=1)
                 predicted_class = torch.argmax(probabilities, dim=1)
             
-            if class_names[predicted_class.item()] == 'squat' or class_names[predicted_class.item()] == 'bicep_curl':
-                prediction_text = f"{class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f})"
-                print(f"Frame {frame_count}: {prediction_text}")
-                audio_output.append(class_names[predicted_class.item()])
+            # if class_names[predicted_class.item()] == 'squat' or class_names[predicted_class.item()] == 'bicep_curl':
+            prediction_text = f"{class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f})"
+            print(f"Frame {frame_count}: {prediction_text}")
+            audio_output.append(class_names[predicted_class.item()])
             
             # Write the prediction onto the frame (optional, if you want to save the video)
             # cv2.putText(frame, prediction_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -83,7 +83,7 @@ def predict_image(frame):
     logits = outputs.logits
     probabilities = torch.softmax(logits, dim=1)
     predicted_class = torch.argmax(probabilities, dim=1)
-    if class_names[predicted_class.item()] == 'squat' or class_names[predicted_class.item()] == 'bicep_curl':
-        prediction_text = f"{class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f})"
-        cv2.putText(frame, prediction_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        return frame
+    # if class_names[predicted_class.item()] == 'squat' or class_names[predicted_class.item()] == 'bicep_curl':
+    prediction_text = f"{class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f})"
+    cv2.putText(frame, prediction_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    return frame
