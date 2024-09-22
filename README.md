@@ -47,9 +47,3 @@ The app has a simple user interface with the following features:
 - **Upload Video**: Upload a video to analyze.
 - **Live Stream**: Use the webcam to analyze the workout in real-time.
 - **Dashboard**: Analyses data from your finished workouts, and shows simple statistics in visual format
-
-### Team Members
-- **Ayush Gupta**: Worked on the dashboard and recording of data
-- **Dhruv Kothari**: Worked on exercise form detection and analysis
-- **Mohammad Owais**: Worked on exercise form detection and analysis
-- **Sarvesh Kumar**: Worked on the classification model and dashboard
