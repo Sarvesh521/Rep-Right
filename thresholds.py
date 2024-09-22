@@ -11,13 +11,13 @@ def get_thresholds_beginner():
     
     _ANGLE_ELBOW_WRIST_VERT = {
                             'NORMAL' : (180,  121),
-                            'TRANS'  : (120, 36),
-                            'PASS'   : (35, 0)
+                            'TRANS'  : (120, 46),
+                            'PASS'   : (45, 0)
     }   
     _ANGLE_SHOULDER_ELBOW_VERT = {
-                            'NORMAL' : (180,  141),
-                            'TRANS'  : (140, 106),
-                            'PASS'   : (105, 95)
+                            'NORMAL' : (180,  146),
+                            'TRANS'  : (145, 106),
+                            'PASS'   : (105, 60)
     }
 
         
@@ -37,12 +37,11 @@ def get_thresholds_beginner():
     "CURL" : {
                         'ELBOW_WRIST_VERT': _ANGLE_ELBOW_WRIST_VERT,
 
-                        'SHOULDER_THRESH'   : 165,
+                        'SHOULDER_THRESH'   : 145,
                         # 'WRIST_THRESH'   : 45,
                         # 'ELBOW_THRESH': [50, 70, 95],
                         'ELBOW_THRESH': [150, 0, -20],
-                        'OFFSET_THRESH'    : 70.0,
-                        #'OFFSET_THRESH'    : 35.0,
+                        'OFFSET_THRESH'    : 35.0,
                         'INACTIVE_THRESH'  : 15.0,
 
                         'CNT_FRAME_THRESH' : 50
@@ -62,7 +61,11 @@ def get_thresholds_beginner():
 
                         'CNT_FRAME_THRESH' : 50,
 
-                        'DIFF_THRESH' : 15
+                        'DIFF_THRESH' : 15, 
+
+                        'HUNCH_SHOULDER_THRESH': 1.6,
+
+                        'IMPROPER_START_FORM': 30
     }
     }
 

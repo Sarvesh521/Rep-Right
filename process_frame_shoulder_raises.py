@@ -1,7 +1,10 @@
 import time
 import cv2
+import json
+import os
+from datetime import datetime
 import numpy as np
-from utils import find_angle, get_landmark_features, draw_text, draw_dotted_line
+from utils import find_angle, get_landmark_features, draw_text, draw_dotted_line, dist, side
 
 def side(a, b, c):
   return 1 if (b[0] - a[0])*(c[1] - a[1]) - (b[1] - a[1])*(c[0] - a[0])<0 else -1
@@ -10,7 +13,7 @@ def dist(a, b):
     return np.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
 
-class ProcessFrame:
+class ProcessFrameRaises:
     def __init__(self, thresholds, flip_frame = False):
         
         # Set if frame should be flipped or not.
@@ -27,6 +30,8 @@ class ProcessFrame:
 
         # set radius to draw arc
         self.radius = 20
+
+        self.exercise = "Raises"
 
         # Colors in BGR format.
         self.COLORS = {
@@ -101,7 +106,7 @@ class ProcessFrame:
                                 0: ('FLARE ELBOWS MORE', 215, (0, 153, 255)),
                                 1: ("DON'T HUNCH SHOULDERS", 250, (0, 153, 255)),
                                 2: ("ASYMMETRIC FORM", 285, (0, 153, 255)), 
-
+                                3: ("IMPROPER START FORM", 320, (0, 153, 255))
                                }
 
         self.session = []
@@ -165,6 +170,38 @@ class ProcessFrame:
                 )
 
         return frame
+
+
+    def _update_record(self): #ADD
+
+        #read current from record.json
+        # print("HI4")
+        # with open("record.json", "r") as f:
+        #     data = json.load(f)
+        # first check if record.json exists or not and then do the above, if not create record.json on the disk
+        try:
+            with open("record.json", "r") as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            with open("record.json", "w") as f:
+                json.dump({}, f)  # Optionally write an empty JSON object
+
+        #update the record
+        to_add = dict()
+        to_add["Correct"] = self.state_tracker['REP_COUNT']
+        to_add["Incorrect"] = self.state_tracker['IMPROPER_REP']
+        if(to_add["Correct"] == 0 and to_add["Incorrect"] == 0):
+            # print("SDFGHJK")
+            return
+        if(to_add["Correct"] + to_add["Incorrect"] == 1):
+            # print("Set start")
+            self.to_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # print(to_add)
+        if(self.exercise not in data):
+            data[self.exercise] = dict()
+        data[self.exercise][self.to_update] = to_add
+        with open("record.json", "w") as f:
+            json.dump(data, f)
 
 
 
@@ -418,20 +455,27 @@ class ProcessFrame:
 
                     if len(self.state_tracker['state_seq']) == 3 and not self.state_tracker['INCORRECT_POSTURE']:
                         self.state_tracker['REP_COUNT']+=1
+                        self._update_record()
                         play_sound = str(self.state_tracker['REP_COUNT'])
                         
                     elif 's2' in self.state_tracker['state_seq'] and len(self.state_tracker['state_seq'])==1:
                         self.state_tracker['IMPROPER_REP']+=1
+                        self._update_record()
                         play_sound = 'incorrect'
 
                     elif self.state_tracker['INCORRECT_POSTURE']:
                         self.state_tracker['IMPROPER_REP']+=1
+                        self._update_record()
                         play_sound = 'incorrect'
                         
                     
                     self.state_tracker['state_seq'] = []
                     self.state_tracker['INCORRECT_POSTURE'] = False
 
+
+                    if(left_wrist_coord[0] < right_wrist_coord[0] or left_wrist_coord[1]<left_elbow_coord[1] or right_wrist_coord[1]<right_elbow_coord[1]):
+                        self.state_tracker['DISPLAY_TEXT'][3] = True
+                        
                     
                     # if(dist(left_ear_coord, left_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6 or dist(right_ear_coord, right_shoulder_coord)/dist(left_ear_coord, right_ear_coord) < 1.6):
                     #     self.state_tracker['DISPLAY_TEXT'][1] = True
@@ -467,7 +511,6 @@ class ProcessFrame:
 
                         
                     if((left_elbow_coord[0] > left_wrist_coord[0] or right_elbow_coord[0] < right_wrist_coord[0]) and (self.state_tracker['state_seq'].count('s2')==1 or self.state_tracker['state_seq'].count('s3')==1)):
-                        self.state_tracker['RAISE_HIGHER'] = True
                         self.state_tracker['DISPLAY_TEXT'][0] = True
                         self.state_tracker['INCORRECT_POSTURE'] = True
 
@@ -477,6 +520,7 @@ class ProcessFrame:
 
                     else:
                         self.state_tracker['DISPLAY_TEXT'][1] = False
+                        self.state_tracker['COUNT_FRAMES'][1] = 0
                     
                     # if (ankle_vertical_angle > self.thresholds['ANKLE_THRESH']):
                     #     self.state_tracker['DISPLAY_TEXT'][2] = True
@@ -584,6 +628,7 @@ class ProcessFrame:
                 )  
                 # with open('offset_angle.txt', 'a') as f:
                 #     f.write("HELLO10")
+                # print(state_tracker)
                 self.state_tracker['DISPLAY_TEXT'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = False
                 self.state_tracker['COUNT_FRAMES'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = 0    
                 self.state_tracker['prev_state'] = current_state
@@ -641,7 +686,7 @@ class ProcessFrame:
             self.state_tracker['INACTIVE_TIME_FRONT'] = 0.0
             self.state_tracker['INCORRECT_POSTURE'] = False
             self.state_tracker['DISPLAY_TEXT'] = np.full((4,), False)
-            self.state_tracker['COUNT_FRAMES'] = np.zeros((3,), dtype=np.int64)
+            self.state_tracker['COUNT_FRAMES'] = np.zeros((4,), dtype=np.int64)
             self.state_tracker['start_inactive_time_front'] = time.perf_counter()
 
   

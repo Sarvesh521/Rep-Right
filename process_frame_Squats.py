@@ -1,10 +1,13 @@
 import time
 import cv2
+import json
+import os
+from datetime import datetime
 import numpy as np
-from utils import find_angle, get_landmark_features, draw_text, draw_dotted_line
+from utils import find_angle, get_landmark_features, draw_text, draw_dotted_line, dist, side
 
 
-class ProcessFrame:
+class ProcessFrameSquats:
     def __init__(self, thresholds, flip_frame = False):
         
         # Set if frame should be flipped or not.
@@ -21,6 +24,8 @@ class ProcessFrame:
 
         # set radius to draw arc
         self.radius = 20
+
+        self.exercise = "Squats"
 
         # Colors in BGR format.
         self.COLORS = {
@@ -46,7 +51,8 @@ class ProcessFrame:
                                 'hip'     : 23,
                                 'knee'    : 25,
                                 'ankle'   : 27,
-                                'foot'    : 31
+                                'foot'    : 31, 
+                                'ear'     : 7,
                              }
 
         self.right_features = {
@@ -56,7 +62,8 @@ class ProcessFrame:
                                 'hip'     : 24,
                                 'knee'    : 26,
                                 'ankle'   : 28,
-                                'foot'    : 32
+                                'foot'    : 32,
+                                'ear'     : 8,
                               }
 
         self.dict_features['left'] = self.left_features
@@ -84,8 +91,8 @@ class ProcessFrame:
             'prev_state': None,
             'curr_state':None,
 
-            'SQUAT_COUNT': 0,
-            'IMPROPER_SQUAT':0
+            'REP_COUNT': 0,
+            'IMPROPER_REP':0
             
         }
         
@@ -154,6 +161,39 @@ class ProcessFrame:
                 )
 
         return frame
+    
+
+    def _update_record(self): #ADD
+
+        #read current from record.json
+        # print("HI4")
+        # with open("record.json", "r") as f:
+        #     data = json.load(f)
+        # first check if record.json exists or not and then do the above, if not create record.json on the disk
+        try:
+            with open("record.json", "r") as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            with open("record.json", "w") as f:
+                json.dump({}, f)  # Optionally write an empty JSON object
+
+        #update the record
+        to_add = dict()
+        to_add["Correct"] = self.state_tracker['REP_COUNT']
+        to_add["Incorrect"] = self.state_tracker['IMPROPER_REP']
+        if(to_add["Correct"] == 0 and to_add["Incorrect"] == 0):
+            # print("SDFGHJK")
+            return
+        if(to_add["Correct"] + to_add["Incorrect"] == 1):
+            # print("Set start")
+            self.to_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # print(to_add)
+        if(self.exercise not in data):
+            data[self.exercise] = dict()
+        data[self.exercise][self.to_update] = to_add
+        with open("record.json", "w") as f:
+            json.dump(data, f)
+
 
 
 
@@ -165,16 +205,15 @@ class ProcessFrame:
 
         # Process the image.
         keypoints = pose.process(frame)
-
         if keypoints.pose_landmarks:
             ps_lm = keypoints.pose_landmarks
 
             nose_coord = get_landmark_features(ps_lm.landmark, self.dict_features, 'nose', frame_width, frame_height)
-            left_shldr_coord, left_elbow_coord, left_wrist_coord, left_hip_coord, left_knee_coord, left_ankle_coord, left_foot_coord = \
+            left_shldr_coord, left_elbow_coord, left_wrist_coord, left_hip_coord, left_knee_coord, left_ankle_coord, left_foot_coord, left_ear_coord = \
                                 get_landmark_features(ps_lm.landmark, self.dict_features, 'left', frame_width, frame_height)
-            right_shldr_coord, right_elbow_coord, right_wrist_coord, right_hip_coord, right_knee_coord, right_ankle_coord, right_foot_coord = \
+            right_shldr_coord, right_elbow_coord, right_wrist_coord, right_hip_coord, right_knee_coord, right_ankle_coord, right_foot_coord, right_ear_coord = \
                                 get_landmark_features(ps_lm.landmark, self.dict_features, 'right', frame_width, frame_height)
-
+            
             offset_angle = find_angle(left_shldr_coord, right_shldr_coord, nose_coord)
 
             if offset_angle > self.thresholds['OFFSET_THRESH']:
@@ -186,8 +225,8 @@ class ProcessFrame:
                 self.state_tracker['start_inactive_time_front'] = end_time
 
                 if self.state_tracker['INACTIVE_TIME_FRONT'] >= self.thresholds['INACTIVE_THRESH']:
-                    self.state_tracker['SQUAT_COUNT'] = 0
-                    self.state_tracker['IMPROPER_SQUAT'] = 0
+                    self.state_tracker['REP_COUNT'] = 0
+                    self.state_tracker['IMPROPER_REP'] = 0
                     display_inactivity = True
 
                 cv2.circle(frame, nose_coord, 7, self.COLORS['white'], -1)
@@ -198,7 +237,7 @@ class ProcessFrame:
                     frame = cv2.flip(frame, 1)
 
                 if display_inactivity:
-                    # cv2.putText(frame, 'Resetting SQUAT_COUNT due to inactivity!!!', (10, frame_height - 90), 
+                    # cv2.putText(frame, 'Resetting REP_COUNT due to inactivity!!!', (10, frame_height - 90), 
                     #             self.font, 0.5, self.COLORS['blue'], 2, lineType=self.linetype)
                     play_sound = 'reset_counters'
                     self.state_tracker['INACTIVE_TIME_FRONT'] = 0.0
@@ -206,7 +245,7 @@ class ProcessFrame:
 
                 draw_text(
                     frame, 
-                    "CORRECT: " + str(self.state_tracker['SQUAT_COUNT']), 
+                    "CORRECT: " + str(self.state_tracker['REP_COUNT']), 
                     pos=(int(frame_width*0.68), 30),
                     text_color=(255, 255, 230),
                     font_scale=0.7,
@@ -216,7 +255,7 @@ class ProcessFrame:
 
                 draw_text(
                     frame, 
-                    "INCORRECT: " + str(self.state_tracker['IMPROPER_SQUAT']), 
+                    "INCORRECT: " + str(self.state_tracker['IMPROPER_REP']), 
                     pos=(int(frame_width*0.68), 80),
                     text_color=(255, 255, 230),
                     font_scale=0.7,
@@ -353,15 +392,18 @@ class ProcessFrame:
                 if current_state == 's1':
 
                     if len(self.state_tracker['state_seq']) == 3 and not self.state_tracker['INCORRECT_POSTURE']:
-                        self.state_tracker['SQUAT_COUNT']+=1
-                        play_sound = str(self.state_tracker['SQUAT_COUNT'])
+                        self.state_tracker['REP_COUNT']+=1
+                        self._update_record()
+                        play_sound = str(self.state_tracker['REP_COUNT'])
                         
                     elif 's2' in self.state_tracker['state_seq'] and len(self.state_tracker['state_seq'])==1:
-                        self.state_tracker['IMPROPER_SQUAT']+=1
+                        self.state_tracker['IMPROPER_REP']+=1
+                        self._update_record()
                         play_sound = 'incorrect'
 
                     elif self.state_tracker['INCORRECT_POSTURE']:
-                        self.state_tracker['IMPROPER_SQUAT']+=1
+                        self.state_tracker['IMPROPER_REP']+=1
+                        self._update_record()
                         play_sound = 'incorrect'
                         
                     
@@ -418,8 +460,8 @@ class ProcessFrame:
                     self.state_tracker['start_inactive_time'] = end_time
 
                     if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
-                        self.state_tracker['SQUAT_COUNT'] = 0
-                        self.state_tracker['IMPROPER_SQUAT'] = 0
+                        self.state_tracker['REP_COUNT'] = 0
+                        self.state_tracker['IMPROPER_REP'] = 0
                         display_inactivity = True
 
                 
@@ -460,7 +502,7 @@ class ProcessFrame:
                  
                 draw_text(
                     frame, 
-                    "CORRECT: " + str(self.state_tracker['SQUAT_COUNT']), 
+                    "CORRECT: " + str(self.state_tracker['REP_COUNT']), 
                     pos=(int(frame_width*0.68), 30),
                     text_color=(255, 255, 230),
                     font_scale=0.7,
@@ -469,7 +511,7 @@ class ProcessFrame:
 
                 draw_text(
                     frame, 
-                    "INCORRECT: " + str(self.state_tracker['IMPROPER_SQUAT']), 
+                    "INCORRECT: " + str(self.state_tracker['IMPROPER_REP']), 
                     pos=(int(frame_width*0.68), 80),
                     text_color=(255, 255, 230),
                     font_scale=0.7,
@@ -492,16 +534,16 @@ class ProcessFrame:
             display_inactivity = False
 
             if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
-                self.state_tracker['SQUAT_COUNT'] = 0
-                self.state_tracker['IMPROPER_SQUAT'] = 0
-                # cv2.putText(frame, 'Resetting SQUAT_COUNT due to inactivity!!!', (10, frame_height - 25), self.font, 0.7, self.COLORS['blue'], 2)
+                self.state_tracker['REP_COUNT'] = 0
+                self.state_tracker['IMPROPER_REP'] = 0
+                # cv2.putText(frame, 'Resetting REP_COUNT due to inactivity!!!', (10, frame_height - 25), self.font, 0.7, self.COLORS['blue'], 2)
                 display_inactivity = True
 
             self.state_tracker['start_inactive_time'] = end_time
 
             draw_text(
                     frame, 
-                    "CORRECT: " + str(self.state_tracker['SQUAT_COUNT']), 
+                    "CORRECT: " + str(self.state_tracker['REP_COUNT']), 
                     pos=(int(frame_width*0.68), 30),
                     text_color=(255, 255, 230),
                     font_scale=0.7,
@@ -511,7 +553,7 @@ class ProcessFrame:
 
             draw_text(
                     frame, 
-                    "INCORRECT: " + str(self.state_tracker['IMPROPER_SQUAT']), 
+                    "INCORRECT: " + str(self.state_tracker['IMPROPER_REP']), 
                     pos=(int(frame_width*0.68), 80),
                     text_color=(255, 255, 230),
                     font_scale=0.7,

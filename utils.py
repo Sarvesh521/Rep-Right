@@ -2,6 +2,13 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
+def side(a, b, c):
+  return 1 if (b[0] - a[0])*(c[1] - a[1]) - (b[1] - a[1])*(c[0] - a[0])<0 else -1
+
+def dist(a, b):
+    return np.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+
+
 def draw_rounded_rect(img, rect_start, rect_end, corner_width, box_color):
 
     x1, y1 = rect_start
