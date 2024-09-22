@@ -41,6 +41,11 @@ https://github.com/user-attachments/assets/50ca9920-a182-4948-9901-85524952864d
 
 https://github.com/user-attachments/assets/4907a32c-5eaf-40d7-82d3-86232a3dea07
 
+## Dashboard Demo
+![Dashboard](https://github.com/user-attachments/assets/6ba49360-f449-4bbd-bcce-9990b626c57d)
+
+
+
 
 
 ## Usage
