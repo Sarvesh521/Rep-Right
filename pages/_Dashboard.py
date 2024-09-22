@@ -44,19 +44,17 @@ else:
         ax.set_title(f'{exercise} Accuracy over time')
         ax.set_xlabel('Time')
         ax.set_ylabel('Accuracy')
+        #reduce number of x ticks
+        ax.xaxis.set_major_locator(plt.MaxNLocator(5))
+        st.pyplot(fig)
+        
+        fig, ax = plt.subplots()
+        ax.plot(df.index, df['Weight'], marker='o', linestyle='-')
+        ax.set_title(f'{exercise} Weights over time')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Weight')
+        #reduce number of x ticks
+        ax.xaxis.set_major_locator(plt.MaxNLocator(5))
         st.pyplot(fig)
         st.write(df)
-    # for exercise in records:
-    #     st.write(f'## {exercise}')
-    #     df = pd.DataFrame(records[exercise]).T
-    #     df.index = pd.to_datetime(df.index)
-    #     df = df.sort_index()
-    #     df['Total'] = df['Correct'] + df['Incorrect']
-    #     df['Accuracy'] = df['Correct'] / df['Total']
-    #     fig, ax = plt.subplots()
-    #     ax.plot(df.index, df['Accuracy'], marker='o', linestyle='-')
-    #     ax.set_title(f'{exercise} Accuracy over time')
-    #     ax.set_xlabel('Time')
-    #     ax.set_ylabel('Accuracy')
-    #     st.pyplot(fig)
-    #     # st.write(df)
+
