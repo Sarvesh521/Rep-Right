@@ -20,7 +20,7 @@ from Classifier import predict_video  # Import the predict_video function
 
 
 
-st.title('RepRight: Demo Analysis')
+st.title('RepRight: Exercise Analysis')
 
 
 thresholds = get_thresholds_beginner() 
@@ -48,7 +48,7 @@ if os.path.exists(output_video_file):
 
 
 with st.form('Upload', clear_on_submit=True):
-    up_file = st.file_uploader("Upload a Video", ['mp4','mov', 'avi'])
+    up_file = st.file_uploader("Upload a Video", ['mp4'])
     uploaded = st.form_submit_button("Upload")
 
 stframe = st.empty()
