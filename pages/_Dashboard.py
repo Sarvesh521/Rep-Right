@@ -18,7 +18,7 @@ from matplotlib.colors import Normalize
 from matplotlib import animation
 from matplotlib.animation import FuncAnimation
 
-st.title('AI Fitness Trainer: Your Dashboard')
+st.title('RepRight: Your Dashboard')
 
 # Load the records
 records = None
