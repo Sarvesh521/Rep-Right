@@ -1,8 +1,9 @@
 import streamlit as st
-st.title('RepRight: Exercis eAnalysis')
 
+st.title('RepRight')
 st.write('## Squat Analysis')
 recorded_file1 = './demo_vid/output_squats.mp4'
+recorded_file = 'output_sample.mp4'
 sample_vid = st.empty()
 sample_vid.video(recorded_file1)
 
