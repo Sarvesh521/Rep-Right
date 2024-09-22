@@ -21,7 +21,7 @@ from Classifier import predict_image  # Import the predict_image function
 from Classifier import predict_video  # Import the predict_video function
 
 
-st.title('AI Fitness Trainer: Exercise Analysis')
+st.title('RepRight: Exercise Analysis')
 
 # mode = st.radio('Select Mode', ['Beginner', 'Pro'], horizontal=True)
 
