@@ -49,8 +49,8 @@ output_video_file = f'output_live.flv'
 
 exercise_option = st.selectbox('Current Exercise:', ['Predict','Bicep curl', 'Squat', 'Lateral Raise'], key='exercise')
 
-#numerical input to choos eweight
-weight = st.number_input('Enter weight (in kgs):', min_value=0, max_value=1000, key='weight')
+#float input to choos eweight
+weight = st.number_input('Enter weight (in kgs):', min_value=0.0, max_value=1000.0, step = 0.1, key='weight')
 
 def video_frame_callback(frame: av.VideoFrame):
     frame = frame.to_ndarray(format="rgb24")  # Decode and get RGB frame

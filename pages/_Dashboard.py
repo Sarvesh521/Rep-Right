@@ -37,13 +37,15 @@ else:
         df = pd.DataFrame(records[exercise]).T
         df.index = pd.to_datetime(df.index)
         df = df.sort_index()
-        df['Total'] = df['Correct'] + df['Incorrect']
-        df['Accuracy'] = df['Correct'] / df['Total']
         fig, ax = plt.subplots()
-        ax.plot(df.index, df['Accuracy'], marker='o', linestyle='-')
+        ax.plot(df.index, df['Correct'], marker='o', linestyle='-', color='green', label='Correct')
+        ax.plot(df.index, df['Incorrect'], marker='o', linestyle='-', color='red', label='Incorrect')
         ax.set_title(f'{exercise} Accuracy over time')
         ax.set_xlabel('Time')
-        ax.set_ylabel('Accuracy')
+        ax.set_ylabel('Count')
+        #add legend
+        ax.legend()
+        
         #reduce number of x ticks
         ax.xaxis.set_major_locator(plt.MaxNLocator(5))
         st.pyplot(fig)
