@@ -175,6 +175,7 @@ class ProcessFrameSquats:
         except (FileNotFoundError, json.JSONDecodeError):
             with open("record.json", "w") as f:
                 json.dump({}, f)  # Optionally write an empty JSON object
+                data = dict()
 
         #update the record
         to_add = dict()

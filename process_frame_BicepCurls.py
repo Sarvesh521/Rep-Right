@@ -189,6 +189,7 @@ class ProcessFrameCurls:
         data[self.exercise][self.to_update] = to_add
         with open("record.json", "w") as f:
             json.dump(data, f)
+            data = dict()
 
 
 

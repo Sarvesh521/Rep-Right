@@ -11,32 +11,29 @@ sys.path.append(BASE_DIR)
 
 
 from utils import get_mediapipe_pose
-from process_frame import ProcessFrame
+from process_frame_BicepCurls import ProcessFrameCurls
+from process_frame_Squats import ProcessFrameSquats
+from process_frame_shoulder_raises import ProcessFrameRaises
 from thresholds import get_thresholds_beginner, get_thresholds_pro
+from Classifier import predict_image  # Import the predict_image function
+from Classifier import predict_video  # Import the predict_video function
 
 
 
 st.title('AI Fitness Trainer: Squats Analysis')
 
-mode = st.radio('Select Mode', ['Beginner', 'Pro'], horizontal=True)
+
+thresholds = get_thresholds_beginner() 
 
 
 
-thresholds = None 
-
-if mode == 'Beginner':
-    thresholds = get_thresholds_beginner()
-
-elif mode == 'Pro':
-    thresholds = get_thresholds_pro()
-
-
-
-upload_process_frame = ProcessFrame(thresholds=thresholds)
+upload_process_frame_squat = ProcessFrameSquats(thresholds=thresholds)
+upload_process_frame_curl = ProcessFrameCurls(thresholds=thresholds)
+upload_process_frame_raise = ProcessFrameRaises(thresholds=thresholds)
 
 # Initialize face mesh solution
 pose = get_mediapipe_pose()
-
+exercise_option = st.selectbox('Current Exercise:', ['Bicep curl', 'Squat', 'Lateral Raise'], key='exercise')
 
 download = None
 
@@ -64,7 +61,9 @@ warn = st.empty()
 
 download_button = st.empty()
 
-if up_file and uploaded:
+# exercise_option = st.selectbox('Current Exercise:', ['Bicep curl', 'Squat', 'Lateral Raise'], key='exercise')
+
+if up_file and uploaded and exercise_option:
     
     download_button.empty()
     tfile = tempfile.NamedTemporaryFile(delete=False)
@@ -95,7 +94,13 @@ if up_file and uploaded:
 
             # convert frame from BGR to RGB before processing it.
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            out_frame, _ = upload_process_frame.process(frame, pose)
+            frame = predict_image(frame) 
+            if exercise_option == 'Bicep curl':
+                out_frame, _ = upload_process_frame_curl.process(frame, pose)
+            elif exercise_option == 'Squat':
+                out_frame, _ = upload_process_frame_squat.process(frame, pose)
+            else:
+                out_frame, _ = upload_process_frame_raise.process(frame, pose)
             stframe.image(out_frame)
             video_output.write(out_frame[...,::-1])
 
