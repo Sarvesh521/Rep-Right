@@ -4,7 +4,8 @@ import sys
 import streamlit as st
 from streamlit_webrtc import VideoHTMLAttributes, webrtc_streamer
 from aiortc.contrib.media import MediaRecorder
-
+import time
+from utils import draw_text
 
 BASE_DIR = os.path.abspath(os.path.join(__file__, '../../'))
 sys.path.append(BASE_DIR)
@@ -13,6 +14,8 @@ sys.path.append(BASE_DIR)
 from utils import get_mediapipe_pose
 from process_frame import ProcessFrame
 from thresholds import get_thresholds_beginner, get_thresholds_pro
+from Classifier import predict_image  # Import the predict_image function
+from Classifier import predict_video  # Import the predict_video function
 
 
 st.title('AI Fitness Trainer: Squats Analysis')
@@ -28,7 +31,9 @@ elif mode == 'Pro':
     thresholds = get_thresholds_pro()
 
 
-live_process_frame = ProcessFrame(thresholds=thresholds, flip_frame=True)
+live_process_frame_squat = ProcessFrame(thresholds=thresholds, flip_frame=True)
+live_process_frame_curl = ProcessFrame(thresholds=thresholds, flip_frame=True)
+live_process_frame_raise = ProcessFrame(thresholds=thresholds, flip_frame=True)
 # Initialize face mesh solution
 pose = get_mediapipe_pose()
 
@@ -36,14 +41,30 @@ pose = get_mediapipe_pose()
 if 'download' not in st.session_state:
     st.session_state['download'] = False
 
+if 'prediction' not in st.session_state:
+    st.session_state['prediction'] = None
+
+
 output_video_file = f'output_live.flv'
 
-  
+exercise_option = st.selectbox('Current Exercise:', ['Predict','Bicep curl', 'Squat', 'Lateral Raise'], key='exercise')
 
 def video_frame_callback(frame: av.VideoFrame):
     frame = frame.to_ndarray(format="rgb24")  # Decode and get RGB frame
-    frame, _ = live_process_frame.process(frame, pose)  # Process frame
+    #frame, _ = live_process_frame_curl.process(frame, pose)  # Process frame
+    print(exercise_option)
+    if exercise_option == 'Bicep curl':
+        frame, _ = live_process_frame_curl.process(frame, pose)
+    elif exercise_option == 'Squat':
+        frame, _ = live_process_frame_squat.process(frame, pose)
+    elif exercise_option == 'Lateral Raise':
+        frame, _ = live_process_frame_raise.process(frame, pose)
+    else:
+        frame = predict_image(frame)
+    
     return av.VideoFrame.from_ndarray(frame, format="rgb24")  # Encode and return BGR frame
+
+
 
 
 def out_recorder_factory() -> MediaRecorder:
@@ -58,7 +79,10 @@ ctx = webrtc_streamer(
                         video_html_attrs=VideoHTMLAttributes(autoPlay=True, controls=False, muted=False),
                         out_recorder_factory=out_recorder_factory
                     )
-
+print("Enterrrrrrrrrrrrrrrrrrr")
+if st.session_state['prediction']:
+    print("Enterrrrrrrrrrr")
+    st.write(f"Prediction: {st.session_state['prediction']}")
 
 download_button = st.empty()
 
