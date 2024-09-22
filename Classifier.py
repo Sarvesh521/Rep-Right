@@ -5,7 +5,6 @@ from PIL import Image
 import cv2
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 import pyttsx3
-from moviepy.editor import VideoFileClip
 
 class_names = ['bicep_curl', 'pushup', 'shoulder press', 'squat']
 
@@ -73,4 +72,4 @@ def predict_video(video_path=None):
         engine.say(text)
         engine.runAndWait()
 
-predict_video('./Model_Classify_Test/pushupv1.mp4')
+predict_video('./Model_Classify_Test/Ayush.mp4')
