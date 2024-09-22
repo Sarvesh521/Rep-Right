@@ -12,7 +12,10 @@ sys.path.append(BASE_DIR)
 
 
 from utils import get_mediapipe_pose
-from process_frame import ProcessFrame
+from process_frame_BicepCurls import ProcessFrameCurls
+from process_frame_Squats import ProcessFrameSquats
+from process_frame_shoulder_raises import ProcessFrameRaises
+
 from thresholds import get_thresholds_beginner, get_thresholds_pro
 from Classifier import predict_image  # Import the predict_image function
 from Classifier import predict_video  # Import the predict_video function
@@ -31,9 +34,9 @@ elif mode == 'Pro':
     thresholds = get_thresholds_pro()
 
 
-live_process_frame_squat = ProcessFrame(thresholds=thresholds, flip_frame=True)
-live_process_frame_curl = ProcessFrame(thresholds=thresholds, flip_frame=True)
-live_process_frame_raise = ProcessFrame(thresholds=thresholds, flip_frame=True)
+live_process_frame_squat = ProcessFrameSquats(thresholds=thresholds, flip_frame=True)
+live_process_frame_curl = ProcessFrameCurls(thresholds=thresholds, flip_frame=True)
+live_process_frame_raise = ProcessFrameRaises(thresholds=thresholds, flip_frame=True)
 # Initialize face mesh solution
 pose = get_mediapipe_pose()
 
