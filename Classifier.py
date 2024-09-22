@@ -29,17 +29,17 @@ def predict_video(video_path=None):
         print("Error: Could not open video.")
         return
     frame_count = 0
-    audio_output=[]
-    flag=0
+    audio_output = []
+    flag = 0
     while cap.isOpened():
-        if flag==0 and len(audio_output)>50:
-            engine = pyttsx3.init()
-            engine.setProperty('rate', 150)
-            engine.setProperty('volume', 1)
-            text = f"{max((audio_output), key = audio_output.count)} Exercise Detected"
-            engine.say(text)
-            engine.runAndWait()
-            flag=1
+        # if flag == 0 and len(audio_output) > 50:
+        #     engine = pyttsx3.init()
+        #     engine.setProperty('rate', 150)
+        #     engine.setProperty('volume', 1)
+        #     text = f"{max((audio_output), key=audio_output.count)} Exercise Detected"
+        #     engine.say(text)
+        #     engine.runAndWait()
+        #     flag = 1
         ret, frame = cap.read()
         if ret:
             frame_count += 1
@@ -50,26 +50,40 @@ def predict_video(video_path=None):
                 probabilities = torch.softmax(logits, dim=1)
                 predicted_class = torch.argmax(probabilities, dim=1)
             
-            prediction_text = f"{class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f})"
-            print(f"Frame {frame_count}: {prediction_text}")
-            audio_output.append(class_names[predicted_class.item()])
+            if class_names[predicted_class.item()] == 'squat' or class_names[predicted_class.item()] == 'bicep_curl':
+                prediction_text = f"{class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f})"
+                print(f"Frame {frame_count}: {prediction_text}")
+                audio_output.append(class_names[predicted_class.item()])
             
-            # Write the prediction onto the frame
-            cv2.putText(frame, prediction_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            cv2.imshow('Video Prediction', frame)
+            # Write the prediction onto the frame (optional, if you want to save the video)
+            # cv2.putText(frame, prediction_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            # video_output.write(frame)  # Uncomment if you want to save the video
             
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q') or frame_count ==50:
                 break
         else:
             break
     cap.release()
-    cv2.destroyAllWindows()
-    if flag==0:
-        engine = pyttsx3.init()
-        engine.setProperty('rate', 150)
-        engine.setProperty('volume', 1)
-        text = f"{max(set(audio_output), key = audio_output.count)} Exercise Detected"
-        engine.say(text)
-        engine.runAndWait()
+    # cv2.destroyAllWindows()  # No need to destroy windows since we are not showing any
 
-predict_video('./Model_Classify_Test/Ayush.mp4')
+    # if flag == 0:
+    #     engine = pyttsx3.init()
+    #     engine.setProperty('rate', 150)
+    #     engine.setProperty('volume', 1)
+    #     text = f"{max(set(audio_output), key=audio_output.count)} Exercise Detected"
+    #     engine.say(text)
+    #     engine.runAndWait()
+    
+    return max(set(audio_output), key=audio_output.count)
+
+
+def predict_image(frame):
+    inputs = processor(images=frame, return_tensors="pt")
+    outputs = model(**inputs)
+    logits = outputs.logits
+    probabilities = torch.softmax(logits, dim=1)
+    predicted_class = torch.argmax(probabilities, dim=1)
+    if class_names[predicted_class.item()] == 'squat' or class_names[predicted_class.item()] == 'bicep_curl':
+        prediction_text = f"{class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f})"
+        cv2.putText(frame, prediction_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        return frame
