@@ -56,7 +56,7 @@ The app has a simple user interface with the following features:
 | ------------- | ----------------------------------------------------------------------------------------- |
 | **Streamlit** | <img src="https://streamlit.io/images/brand/streamlit-mark-color.png" width="100"/>        |
 | **Hugging Face** | <img src="https://huggingface.co/front/assets/huggingface_logo.svg" width="100"/>       |
-| **MediaPipe** | <img src="https://images.app.goo.gl/WgHrDCfGhYwRyB6h6" width="100"/>                       |
+| **MediaPipe** | <img src="https://github.com/Sarvesh521/Rep-Right/blob/79e4584c01ffaecfad59a995a50975b8a26734a2/MediaPipe.png" width="100"/>                       |
 | **OpenCV**    | <img src="https://opencv.org/wp-content/uploads/2020/07/OpenCV_logo_white_600x.png" width="100"/> |
 | **PyTorch**   | <img src="https://pytorch.org/assets/images/pytorch-logo.png" width="100"/>                |
 | **Python**    | <img src="https://www.python.org/static/community_logos/python-logo.png" width="100"/>     |
