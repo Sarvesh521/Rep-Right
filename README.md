@@ -1,4 +1,4 @@
-# AI Fitness Trainer
+# Rep Right: AI Fitness Trainer
 
 This project provides an AI-powered fitness trainer that can analyze and classify various exercises such as squats, bicep curls, and shoulder raises in real-time using a webcam or pre-recorded videos.
 
