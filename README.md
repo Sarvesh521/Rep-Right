@@ -21,7 +21,25 @@ This project provides an AI-powered fitness trainer capable of analyzing and cla
     ```bash
     pip install -r requirements.txt
     ```
+## Video Demo
 
+### Squats Demo
+<video width="320" height="240" controls>
+  <source src="demo_vid/output_squats.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+### Curls Demo
+<video width="320" height="240" controls>
+  <source src="demo_vid/output_biceps.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+### Raises Demo
+<video width="320" height="240" controls>
+  <source src="demo_vid/output_raises.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 
 ## Usage
@@ -60,6 +78,9 @@ The app has a simple user interface with the following features:
 | **OpenCV**    | <img src="https://opencv.org/wp-content/uploads/2020/07/OpenCV_logo_white_600x.png" width="100"/> |
 | **PyTorch**   | <img src="https://pytorch.org/assets/images/pytorch-logo.png" width="100"/>                |
 | **Python**    | <img src="https://www.python.org/static/community_logos/python-logo.png" width="100"/>     |
+
+
+
 
 
 
