@@ -68,6 +68,10 @@ The app has a simple user interface with the following features:
 - **Live Stream**: Use the webcam to analyze the workout in real-time.
 - **Dashboard**: Analyses data from your finished workouts, and shows simple statistics in visual format
 
+## Future Apects to this project
+- Since the hackathon was short we just accounted for 3 exercises, the same could be extended to nearly all exercises, by accounting for different edge cases, coordinates and angles.
+- We can integrate genai and prompt it to give suitable workout plans and feedbacks based on the previous records of the workouts
+
 
 ## Tech Stack
 
