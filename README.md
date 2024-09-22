@@ -24,13 +24,23 @@ This project provides an AI-powered fitness trainer capable of analyzing and cla
 ## Video Demo
 
 ### Squats Demo
-https://github.com/Sarvesh521/Rep-Right/blob/474d8aea3b80b8a37db496c88ea807f6cbd6142d/demo_vid/output_squats.mp4
+
+
+https://github.com/user-attachments/assets/9f803bbf-86a1-4857-a429-2772f6230bd4
+
 
 ### Curls Demo
-https://github.com/Sarvesh521/Rep-Right/blob/474d8aea3b80b8a37db496c88ea807f6cbd6142d/demo_vid/output_biceps.mp4
+
+https://github.com/user-attachments/assets/50ca9920-a182-4948-9901-85524952864d
+
+
 
 ### Raises Demo
-https://github.com/Sarvesh521/Rep-Right/blob/474d8aea3b80b8a37db496c88ea807f6cbd6142d/demo_vid/output_raises.mp4
+
+
+
+https://github.com/user-attachments/assets/4907a32c-5eaf-40d7-82d3-86232a3dea07
+
 
 
 ## Usage
