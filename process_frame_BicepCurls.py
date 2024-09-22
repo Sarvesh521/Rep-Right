@@ -166,7 +166,6 @@ class ProcessFrameCurls:
     def _update_record(self,weight): #ADD
 
         #read current from record.json
-        # print("HI4")
         # with open("record.json", "r") as f:
         #     data = json.load(f)
         # first check if record.json exists or not and then do the above, if not create record.json on the disk
@@ -183,12 +182,9 @@ class ProcessFrameCurls:
         to_add["Incorrect"] = self.state_tracker['IMPROPER_REP']
         to_add["Weight"] = weight
         if(to_add["Correct"] == 0 and to_add["Incorrect"] == 0):
-            # print("SDFGHJK")
             return
         if(to_add["Correct"] + to_add["Incorrect"] == 1):
-            # print("Set start")
             self.to_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # print(to_add)
         if(self.exercise not in data):
             data[self.exercise] = dict()
         data[self.exercise][self.to_update] = to_add
@@ -389,7 +385,6 @@ class ProcessFrameCurls:
                 # with open('offset_angle.txt', 'a') as f:
                 #     f.write("HELLO4")
                 
-                print(writst_elbow_shoulder_angle)
                 current_state = self._get_state(int(writst_elbow_shoulder_angle))
                 self.state_tracker['curr_state'] = current_state
                 self._update_state_sequence(current_state)
@@ -397,7 +392,6 @@ class ProcessFrameCurls:
 
 
                 # -------------------------------------- COMPUTE COUNTERS --------------------------------------
-                print(current_state)
                 if current_state == 's1':
 
                     if len(self.state_tracker['state_seq']) == 3 and not self.state_tracker['INCORRECT_POSTURE']:
@@ -468,7 +462,6 @@ class ProcessFrameCurls:
 
                     if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
                         self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])
-                        print("REP: ", self.state_tracker['REP_COUNT'], " IMPROPER_REP: ", self.state_tracker['IMPROPER_REP'])
                         self.state_tracker['REP_COUNT'] = 0
                         self.state_tracker['IMPROPER_REP'] = 0
                         display_inactivity = True

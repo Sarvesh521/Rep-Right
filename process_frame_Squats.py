@@ -166,7 +166,6 @@ class ProcessFrameSquats:
     def _update_record(self,weight): #ADD
 
         #read current from record.json
-        # print("HI4")
         # with open("record.json", "r") as f:
         #     data = json.load(f)
         # first check if record.json exists or not and then do the above, if not create record.json on the disk
@@ -183,12 +182,9 @@ class ProcessFrameSquats:
         to_add["Incorrect"] = self.state_tracker['IMPROPER_REP']
         to_add["Weight"] = weight
         if(to_add["Correct"] == 0 and to_add["Incorrect"] == 0):
-            # print("SDFGHJK")
             return
         if(to_add["Correct"] + to_add["Incorrect"] == 1):
-            # print("Set start")
             self.to_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # print(to_add)
         if(self.exercise not in data):
             data[self.exercise] = dict()
         data[self.exercise][self.to_update] = to_add
