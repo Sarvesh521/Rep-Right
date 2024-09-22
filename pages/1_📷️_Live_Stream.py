@@ -42,20 +42,25 @@ if 'download' not in st.session_state:
 if 'prediction' not in st.session_state:
     st.session_state['prediction'] = None
 
+if 'weight' not in st.session_state:
+    st.session_state['weight'] = None
 
 output_video_file = f'output_live.flv'
 
 exercise_option = st.selectbox('Current Exercise:', ['Predict','Bicep curl', 'Squat', 'Lateral Raise'], key='exercise')
 
+#numerical input to choos eweight
+weight = st.number_input('Enter weight (in kgs):', min_value=0, max_value=1000, key='weight')
+
 def video_frame_callback(frame: av.VideoFrame):
     frame = frame.to_ndarray(format="rgb24")  # Decode and get RGB frame
     #frame, _ = live_process_frame_curl.process(frame, pose)  # Process frame
     if exercise_option == 'Bicep curl':
-        frame, _ = live_process_frame_curl.process(frame, pose)
+        frame, _ = live_process_frame_curl.process(frame, pose,weight)
     elif exercise_option == 'Squat':
-        frame, _ = live_process_frame_squat.process(frame, pose)
+        frame, _ = live_process_frame_squat.process(frame, pose, weight)
     elif exercise_option == 'Lateral Raise':
-        frame, _ = live_process_frame_raise.process(frame, pose)
+        frame, _ = live_process_frame_raise.process(frame, pose, weight)
     else:
         frame = predict_image(frame)
     
