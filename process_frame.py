@@ -404,7 +404,6 @@ class ProcessFrame:
     # ------------------------------------------------------------             
                 
                 avg_shoulder_angle = (left_shoulder_vertical_angle + right_shoulder_vertical_angle)/2
-                # print(left = left_shoulder_vertical_angle, right = right_shoulder_vertical_angle)
                 current_state = self._get_state(avg_shoulder_angle)
                 self.state_tracker['curr_state'] = current_state
                 self._update_state_sequence(current_state)
@@ -412,8 +411,6 @@ class ProcessFrame:
 
 
                 # -------------------------------------- COMPUTE COUNTERS --------------------------------------
-                # print("left dist ratio: ", dist(left_shoulder_coord, left_ear_coord)/dist(left_ear_coord, right_ear_coord))
-                print(current_state)
                 if current_state == 's1':
 
                     if len(self.state_tracker['state_seq']) == 3 and not self.state_tracker['INCORRECT_POSTURE']:
@@ -502,7 +499,6 @@ class ProcessFrame:
 
                     if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
                         self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])
-                        print("REP: ", self.state_tracker['REP_COUNT'], " IMPROPER_REP: ", self.state_tracker['IMPROPER_REP'])
                         self.state_tracker['REP_COUNT'] = 0
                         self.state_tracker['IMPROPER_REP'] = 0
                         display_inactivity = True

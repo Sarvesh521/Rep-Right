@@ -175,7 +175,6 @@ class ProcessFrameRaises:
     def _update_record(self): #ADD
 
         #read current from record.json
-        # print("HI4")
         # with open("record.json", "r") as f:
         #     data = json.load(f)
         # first check if record.json exists or not and then do the above, if not create record.json on the disk
@@ -191,12 +190,9 @@ class ProcessFrameRaises:
         to_add["Correct"] = self.state_tracker['REP_COUNT']
         to_add["Incorrect"] = self.state_tracker['IMPROPER_REP']
         if(to_add["Correct"] == 0 and to_add["Incorrect"] == 0):
-            # print("SDFGHJK")
             return
         if(to_add["Correct"] + to_add["Incorrect"] == 1):
-            # print("Set start")
             self.to_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # print(to_add)
         if(self.exercise not in data):
             data[self.exercise] = dict()
         data[self.exercise][self.to_update] = to_add
@@ -441,7 +437,6 @@ class ProcessFrameRaises:
     # ------------------------------------------------------------             
                 
                 avg_shoulder_angle = (left_shoulder_vertical_angle + right_shoulder_vertical_angle)/2
-                # print(left = left_shoulder_vertical_angle, right = right_shoulder_vertical_angle)
                 current_state = self._get_state(avg_shoulder_angle)
                 self.state_tracker['curr_state'] = current_state
                 self._update_state_sequence(current_state)
@@ -449,8 +444,6 @@ class ProcessFrameRaises:
 
 
                 # -------------------------------------- COMPUTE COUNTERS --------------------------------------
-                # print("left dist ratio: ", dist(left_shoulder_coord, left_ear_coord)/dist(left_ear_coord, right_ear_coord))
-                print(current_state)
                 if current_state == 's1':
 
                     if len(self.state_tracker['state_seq']) == 3 and not self.state_tracker['INCORRECT_POSTURE']:
@@ -546,7 +539,6 @@ class ProcessFrameRaises:
 
                     if self.state_tracker['INACTIVE_TIME'] >= self.thresholds['INACTIVE_THRESH']:
                         self.session.append([self.state_tracker['REP_COUNT'], self.state_tracker['IMPROPER_REP']])
-                        print("REP: ", self.state_tracker['REP_COUNT'], " IMPROPER_REP: ", self.state_tracker['IMPROPER_REP'])
                         self.state_tracker['REP_COUNT'] = 0
                         self.state_tracker['IMPROPER_REP'] = 0
                         display_inactivity = True
@@ -628,7 +620,6 @@ class ProcessFrameRaises:
                 )  
                 # with open('offset_angle.txt', 'a') as f:
                 #     f.write("HELLO10")
-                # print(state_tracker)
                 self.state_tracker['DISPLAY_TEXT'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = False
                 self.state_tracker['COUNT_FRAMES'][self.state_tracker['COUNT_FRAMES'] > self.thresholds['CNT_FRAME_THRESH']] = 0    
                 self.state_tracker['prev_state'] = current_state

@@ -21,17 +21,12 @@ from Classifier import predict_image  # Import the predict_image function
 from Classifier import predict_video  # Import the predict_video function
 
 
-st.title('AI Fitness Trainer: Squats Analysis')
+st.title('AI Fitness Trainer: Exercise Analysis')
 
-mode = st.radio('Select Mode', ['Beginner', 'Pro'], horizontal=True)
+# mode = st.radio('Select Mode', ['Beginner', 'Pro'], horizontal=True)
 
-thresholds = None 
+thresholds = get_thresholds_beginner() 
 
-if mode == 'Beginner':
-    thresholds = get_thresholds_beginner()
-
-elif mode == 'Pro':
-    thresholds = get_thresholds_pro()
 
 
 live_process_frame_squat = ProcessFrameSquats(thresholds=thresholds, flip_frame=True)
@@ -55,7 +50,6 @@ exercise_option = st.selectbox('Current Exercise:', ['Predict','Bicep curl', 'Sq
 def video_frame_callback(frame: av.VideoFrame):
     frame = frame.to_ndarray(format="rgb24")  # Decode and get RGB frame
     #frame, _ = live_process_frame_curl.process(frame, pose)  # Process frame
-    print(exercise_option)
     if exercise_option == 'Bicep curl':
         frame, _ = live_process_frame_curl.process(frame, pose)
     elif exercise_option == 'Squat':
@@ -82,10 +76,7 @@ ctx = webrtc_streamer(
                         video_html_attrs=VideoHTMLAttributes(autoPlay=True, controls=False, muted=False),
                         out_recorder_factory=out_recorder_factory
                     )
-print("Enterrrrrrrrrrrrrrrrrrr")
-if st.session_state['prediction']:
-    print("Enterrrrrrrrrrr")
-    st.write(f"Prediction: {st.session_state['prediction']}")
+
 
 download_button = st.empty()
 
