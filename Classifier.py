@@ -5,7 +5,7 @@ from PIL import Image
 import cv2
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 
-class_names =['bicep_curl','pushup','shoulder press','squat']
+class_names = ['bicep_curl', 'pushup', 'shoulder press', 'squat']
 
 processor = AutoImageProcessor.from_pretrained("siddhantuniyal/exercise-detection")
 model = AutoModelForImageClassification.from_pretrained("siddhantuniyal/exercise-detection")
@@ -36,8 +36,13 @@ def predict_video(video_path):
                 probabilities = torch.softmax(logits, dim=1)
                 predicted_class = torch.argmax(probabilities, dim=1)
             
-            print(f"Frame {frame_count}: {class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f} probability)")
+            prediction_text = f"{class_names[predicted_class.item()]} ({probabilities[0][predicted_class.item()]:.2f})"
+            print(f"Frame {frame_count}: {prediction_text}")
+            
+            # Write the prediction onto the frame
+            cv2.putText(frame, prediction_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             cv2.imshow('Video Prediction', frame)
+            
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         else:
@@ -45,5 +50,5 @@ def predict_video(video_path):
     cap.release()
     cv2.destroyAllWindows()
 
-video_path = './Model_Classify_Test/Ayush.mp4' 
+video_path = './Model_Classify_Test/pushupv1.mp4' 
 predict_video(video_path)
