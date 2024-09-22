@@ -48,3 +48,18 @@ The app has a simple user interface with the following features:
 - **Upload Video**: Upload a video to analyze.
 - **Live Stream**: Use the webcam to analyze the workout in real-time.
 - **Dashboard**: Analyses data from your finished workouts, and shows simple statistics in visual format
+
+
+## Tech Stack
+
+| Technology    | Logo                                                                                      |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| **Streamlit** | <img src="https://streamlit.io/images/brand/streamlit-mark-color.png" width="100"/>        |
+| **Hugging Face** | <img src="https://huggingface.co/front/assets/huggingface_logo.svg" width="100"/>       |
+| **MediaPipe** | <img src="https://images.app.goo.gl/WgHrDCfGhYwRyB6h6" width="100"/>                       |
+| **OpenCV**    | <img src="https://opencv.org/wp-content/uploads/2020/07/OpenCV_logo_white_600x.png" width="100"/> |
+| **PyTorch**   | <img src="https://pytorch.org/assets/images/pytorch-logo.png" width="100"/>                |
+| **Python**    | <img src="https://www.python.org/static/community_logos/python-logo.png" width="100"/>     |
+
+
+
