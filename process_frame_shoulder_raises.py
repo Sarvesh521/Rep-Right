@@ -592,10 +592,10 @@ class ProcessFrameRaises:
                 # cv2.putText(frame, str(int(shoulder_vertical_angle)), (shoulder_text_coord_x, shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
                 # cv2.putText(frame, str(int(elbow_vertical_angle)), (elbow_text_coord_x, elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
 
-                cv2.putText(frame, str(int(left_shoulder_vertical_angle)), (left_shoulder_coord_x, left_shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+                cv2.putText(frame, str(int(180-left_shoulder_vertical_angle)), (left_shoulder_coord_x, left_shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
                 cv2.putText(frame, str(int(left_elbow_vertical_angle)), (left_elbow_coord_x, left_elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
 
-                cv2.putText(frame, str(int(right_shoulder_vertical_angle)), (right_shoulder_coord_x, right_shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
+                cv2.putText(frame, str(int(180-right_shoulder_vertical_angle)), (right_shoulder_coord_x, right_shoulder_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
                 cv2.putText(frame, str(int(right_elbow_vertical_angle)), (right_elbow_coord_x, right_elbow_coord[1]+10), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)
 
                 #cv2.putText(frame, str(int(ankle_vertical_angle)), (ankle_text_coord_x, ankle_coord[1]), self.font, 0.6, self.COLORS['light_green'], 2, lineType=self.linetype)

@@ -15,8 +15,8 @@ def get_thresholds_beginner():
                             'PASS'   : (45, 0)
     }   
     _ANGLE_SHOULDER_ELBOW_VERT = {
-                            'NORMAL' : (180,  146),
-                            'TRANS'  : (145, 106),
+                            'NORMAL' : (180,  150),
+                            'TRANS'  : (149, 106),
                             'PASS'   : (105, 60)
     }
 
