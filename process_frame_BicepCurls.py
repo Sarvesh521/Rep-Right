@@ -163,7 +163,7 @@ class ProcessFrameCurls:
         return frame
 
 
-    def _update_record(self): #ADD
+    def _update_record(self,weight): #ADD
 
         #read current from record.json
         # print("HI4")
@@ -181,6 +181,7 @@ class ProcessFrameCurls:
         to_add = dict()
         to_add["Correct"] = self.state_tracker['REP_COUNT']
         to_add["Incorrect"] = self.state_tracker['IMPROPER_REP']
+        to_add["Weight"] = weight
         if(to_add["Correct"] == 0 and to_add["Incorrect"] == 0):
             # print("SDFGHJK")
             return
@@ -197,7 +198,7 @@ class ProcessFrameCurls:
 
 
 
-    def process(self, frame: np.array, pose):
+    def process(self, frame: np.array, pose, weight = 10): #ADD
         play_sound = None
        
 
@@ -401,17 +402,17 @@ class ProcessFrameCurls:
 
                     if len(self.state_tracker['state_seq']) == 3 and not self.state_tracker['INCORRECT_POSTURE']:
                         self.state_tracker['REP_COUNT']+=1
-                        self._update_record()
+                        self._update_record(weight)
                         play_sound = str(self.state_tracker['REP_COUNT'])
                         
                     elif 's2' in self.state_tracker['state_seq'] and len(self.state_tracker['state_seq'])==1:
                         self.state_tracker['IMPROPER_REP']+=1
-                        self._update_record()
+                        self._update_record(weight)
                         play_sound = 'incorrect'
 
                     elif self.state_tracker['INCORRECT_POSTURE']:
                         self.state_tracker['IMPROPER_REP']+=1
-                        self._update_record()
+                        self._update_record(weight)
                         play_sound = 'incorrect'
                         
                     
